@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gopass-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gopass
+      POSTGRES_PASSWORD: gopass
+      POSTGRES_DB: gopass
+    ports:
+      - "5435:5432"
+    volumes:
+      - gopass_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  gopass_postgres_data:
