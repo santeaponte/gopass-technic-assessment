@@ -1,0 +1,11 @@
+{
+  "name": "gopass",
+  "private": true,
+  "workspaces": [
+    "backend"
+  ],
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "zod": "^4.5.4"
+  }
+}
