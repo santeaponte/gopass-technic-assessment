@@ -100,26 +100,6 @@
   box-shadow: 0 0.35rem 1rem rgb(25 52 58 / 5%);
 }
 
-.project-item:nth-child(5n + 1) {
-  background: #fff8e8;
-}
-
-.project-item:nth-child(5n + 2) {
-  background: #edf7ef;
-}
-
-.project-item:nth-child(5n + 3) {
-  background: #edf5fb;
-}
-
-.project-item:nth-child(5n + 4) {
-  background: #fff0ed;
-}
-
-.project-item:nth-child(5n) {
-  background: #f2effa;
-}
-
 .project-main {
   display: grid;
   gap: 0.75rem;
@@ -222,4 +202,177 @@
   gap: 0.75rem;
   color: #607178;
   font-size: 0.88rem;
+}
+
+.project-modal-backdrop {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 38%);
+}
+
+.project-modal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(15rem, 0.8fr);
+  width: min(58rem, 100%);
+  max-height: min(38rem, calc(100vh - 3rem));
+  overflow: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 20%);
+}
+
+.project-modal-tasks,
+.project-modal-info {
+  padding: 2rem;
+}
+
+.project-modal-tasks {
+  border-right: 1px solid #d9e1e5;
+}
+
+.project-modal-info {
+  background: #f7f9f8;
+}
+
+.project-modal-close {
+  position: absolute;
+  z-index: 1;
+  top: 0.85rem;
+  right: 0.85rem;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  color: #19343a;
+  background: #e5ecec;
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.project-modal-close:hover,
+.project-modal-close:focus-visible {
+  color: #fff;
+  background: #19343a;
+}
+
+.project-modal-close:focus-visible {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.project-modal-section-heading {
+  padding-right: 2rem;
+}
+
+.project-modal-section-heading h2 {
+  margin: 0;
+  color: #19343a;
+  font-size: 1.45rem;
+}
+
+.project-task-list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  list-style: none;
+}
+
+.project-task-item {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  padding: 0.9rem;
+  background: #fff;
+}
+
+.project-task-item strong {
+  color: #19343a;
+}
+
+.project-task-item p {
+  margin: 0.35rem 0 0;
+  color: #607178;
+  font-size: 0.9rem;
+}
+
+.project-task-status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem;
+  color: #607178;
+  background: #edf2f3;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.project-task-status-in_progress,
+.project-task-status-done {
+  color: #29634e;
+  background: #e3f1e9;
+}
+
+.project-task-status-in_review {
+  color: #8a5b20;
+  background: #fff0dc;
+}
+
+.project-modal-description {
+  margin: 1.5rem 0 0;
+  color: #607178;
+  line-height: 1.6;
+}
+
+.project-modal-meta {
+  display: grid;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.project-modal-meta div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.project-modal-meta dt {
+  color: #607178;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.project-modal-meta dd {
+  margin: 0;
+  color: #19343a;
+  font-weight: 700;
+}
+
+.project-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+@media (max-width: 720px) {
+  .project-modal {
+    grid-template-columns: 1fr;
+    max-height: calc(100vh - 2rem);
+  }
+
+  .project-modal-tasks {
+    border-right: 0;
+    border-bottom: 1px solid #d9e1e5;
+  }
 }

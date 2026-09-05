@@ -2,10 +2,7 @@ import type { Project } from '../types';
 
 type ProjectListProps = {
   projects: Project[];
-  canManage: boolean;
   onOpen: (project: Project) => void;
-  onEdit: (project: Project) => void;
-  onDelete: (project: Project) => void;
 };
 
 const statusLabels: Record<Project['status'], string> = {
@@ -16,7 +13,7 @@ const statusLabels: Record<Project['status'], string> = {
   CANCELLED: 'Cancelado',
 };
 
-export function ProjectList({ projects, canManage, onOpen, onEdit, onDelete }: ProjectListProps) {
+export function ProjectList({ projects, onOpen }: ProjectListProps) {
   if (projects.length === 0) {
     return <p className="empty-state">No hay proyectos para mostrar.</p>;
   }
@@ -43,16 +40,6 @@ export function ProjectList({ projects, canManage, onOpen, onEdit, onDelete }: P
             </span>
           </button>
 
-          {canManage && (
-            <div className="project-actions">
-              <button type="button" className="secondary-button" onClick={() => onEdit(project)}>
-                Editar
-              </button>
-              <button type="button" className="danger-button" onClick={() => onDelete(project)}>
-                Eliminar
-              </button>
-            </div>
-          )}
         </li>
       ))}
     </ul>

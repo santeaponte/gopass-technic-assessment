@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
 import { createProject, deleteProject, getProjects, updateProject } from '../api';
+import { ProjectDetailModal } from '../components/ProjectDetailModal';
 import { ProjectForm } from '../components/ProjectForm';
 import { ProjectList } from '../components/ProjectList';
 import type { Project, ProjectFormValues } from '../types';
@@ -14,7 +14,6 @@ const initialFormValues: ProjectFormValues = {
 };
 
 export function ProjectsPage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -25,6 +24,7 @@ export function ProjectsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const loadProjects = useCallback(async (term: string): Promise<void> => {
     try {
@@ -117,14 +117,14 @@ export function ProjectsPage() {
     }
   };
 
-  const handleDelete = async (project: Project): Promise<void> => {
+  const handleDelete = async (project: Project): Promise<boolean> => {
     if (!isAdmin) {
-      return;
+      return false;
     }
 
     const confirmed = window.confirm(`¿Eliminar el proyecto "${project.name}"?`);
     if (!confirmed) {
-      return;
+      return false;
     }
 
     setError('');
@@ -132,6 +132,7 @@ export function ProjectsPage() {
     try {
       await deleteProject(project.id);
       setProjects((currentProjects) => currentProjects.filter((item) => item.id !== project.id));
+      return true;
     } catch (requestError) {
       console.error(requestError);
       if (requestError instanceof ApiError) {
@@ -139,6 +140,7 @@ export function ProjectsPage() {
       } else {
         setError('No pudimos eliminar el proyecto.');
       }
+      return false;
     }
   };
 
@@ -148,8 +150,16 @@ export function ProjectsPage() {
   };
 
   const openEditForm = (project: Project) => {
+    setSelectedProject(null);
     setEditingProject(project);
     setIsFormOpen(true);
+  };
+
+  const handleModalDelete = async (project: Project): Promise<void> => {
+    const deleted = await handleDelete(project);
+    if (deleted) {
+      setSelectedProject(null);
+    }
   };
 
   const closeForm = () => {
@@ -217,10 +227,17 @@ export function ProjectsPage() {
       ) : (
         <ProjectList
           projects={projects}
+          onOpen={setSelectedProject}
+        />
+      )}
+
+      {selectedProject && (
+        <ProjectDetailModal
+          project={selectedProject}
           canManage={isAdmin}
-          onOpen={(project) => navigate(`/projects/${project.id}/tasks`)}
+          onClose={() => setSelectedProject(null)}
           onEdit={openEditForm}
-          onDelete={handleDelete}
+          onDelete={handleModalDelete}
         />
       )}
     </main>
