@@ -3,10 +3,6 @@ import { z } from 'zod';
 const taskPrioritySchema = z.enum(['LOW', 'MEDIUM', 'HIGH']);
 const taskStatusSchema = z.enum(['PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'DONE']);
 const dateSchema = z.coerce.date();
-const assigneeIdsSchema = z.array(z.string().uuid()).max(100).refine(
-	(ids) => new Set(ids).size === ids.length,
-	{ message: 'assigneeIds must not contain duplicates' },
-);
 
 export const taskIdSchema = z.object({
 	id: z.string().uuid(),
@@ -22,7 +18,7 @@ export const createTaskSchema = z.object({
 	priority: taskPrioritySchema.optional(),
 	projectId: z.string().uuid(),
 	dueDate: dateSchema.nullable().optional(),
-	assigneeIds: assigneeIdsSchema.optional(),
+	assigneeId: z.string().uuid().nullable().optional(),
 }).strict();
 
 export const updateTaskSchema = z.object({
@@ -31,7 +27,7 @@ export const updateTaskSchema = z.object({
 	priority: taskPrioritySchema.optional(),
 	projectId: z.string().uuid().optional(),
 	dueDate: dateSchema.nullable().optional(),
-	assigneeIds: assigneeIdsSchema.optional(),
+	assigneeId: z.string().uuid().nullable().optional(),
 }).strict().refine((data) => Object.keys(data).length > 0, {
 	message: 'At least one field is required',
 });
