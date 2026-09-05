@@ -42,6 +42,7 @@ model User {
 
   ownedProjects Project[]          @relation("ProjectOwner")
   assignedTasks Task[] @relation("UserAssignedTasks")
+  createdTasks  Task[] @relation("UserCreatedTasks")
   statusChanges TaskStatusChange[] @relation("StatusChangedBy")
 
   @@map("users")
@@ -54,6 +55,7 @@ model Project {
   status      ProjectStatus @default(ACTIVE)
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
+  startDate   DateTime?     @map("start_date") @db.Date
   dueDate     DateTime?     @map("due_date") @db.Date
 
   ownerId String @map("owner_id")
@@ -80,6 +82,9 @@ model Task {
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
   dueDate    DateTime? @map("due_date") @db.Date
+
+  creatorId String @map("creator_id")
+  creator   User   @relation("UserCreatedTasks", fields: [creatorId], references: [id], onDelete: Restrict)
 
   assigneeId String? @map("assignee_id")
   assignee   User?   @relation("UserAssignedTasks", fields: [assigneeId], references: [id], onDelete: SetNull)

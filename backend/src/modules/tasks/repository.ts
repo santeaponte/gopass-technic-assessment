@@ -17,6 +17,7 @@ const projectSelect = {
 	status: true,
 	createdAt: true,
 	updatedAt: true,
+	startDate: true,
 	dueDate: true,
 	owner: { select: publicUserSelect },
 } as const;
@@ -29,7 +30,9 @@ const taskSelect = {
 	priority: true,
 	notes: true,
 	projectId: true,
+	creatorId: true,
 	project: { select: projectSelect },
+	creator: { select: publicUserSelect },
 	archivedAt: true,
 	createdAt: true,
 	updatedAt: true,
@@ -56,10 +59,11 @@ export type CreateTaskData = {
 	description?: string | null;
 	priority?: TaskPriority;
 	projectId: string;
+	creatorId: string;
 	dueDate?: Date | null;
 	assigneeId?: string | null;
 };
-export type UpdateTaskData = Partial<CreateTaskData>;
+export type UpdateTaskData = Partial<Omit<CreateTaskData, 'creatorId'>>;
 
 export class TaskRepository {
 	public constructor(private readonly database: DatabaseClient = prisma) {}

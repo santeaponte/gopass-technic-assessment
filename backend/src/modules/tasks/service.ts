@@ -37,16 +37,16 @@ export class TaskService {
 		return task;
 	}
 
-	public async create(input: CreateTaskInput, changedBy: string) {
+	public async create(input: CreateTaskInput, creatorId: string) {
 		return this.taskRepository.transaction(async (repository) => {
 			await this.ensureProjectExists(repository, input.projectId);
 			await this.ensureUserExists(repository, input.assigneeId);
-			const task = await repository.create(input);
+			const task = await repository.create({ ...input, creatorId });
 			await repository.createStatusChange({
 				taskId: task.id,
 				fromStatus: null,
 				toStatus: 'PENDING',
-				changedBy,
+				changedBy: creatorId,
 			});
 
 			return repository.findById(task.id);
