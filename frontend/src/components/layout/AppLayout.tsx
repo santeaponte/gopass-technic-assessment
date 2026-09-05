@@ -1,4 +1,5 @@
 import '../../App.css';
+import { Outlet } from 'react-router-dom';
 
 export function AppLayout() {
   return (
@@ -7,7 +8,7 @@ export function AppLayout() {
         <span className="app-brand">Gopass</span>
       </header>
       <section className="app-content" aria-label="Application content">
-        <p>Application workspace</p>
+        <Outlet />
       </section>
     </main>
   );
