@@ -115,9 +115,239 @@
   opacity: 0.65;
 }
 
+.projects-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.projects-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.projects-kicker {
+  margin: 0 0 0.5rem;
+  color: #df6b3f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.projects-header h1 {
+  margin: 0;
+  color: #19343a;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.projects-search {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.projects-search input {
+  flex: 1;
+  min-height: 2.75rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #b8c7ca;
+  background: #fff;
+  color: #19343a;
+  font: inherit;
+}
+
+.project-panel,
+.project-item {
+  border: 1px solid #d9e1e5;
+  background: #ffffff;
+}
+
+.project-panel {
+  padding: 1.25rem;
+}
+
+.project-panel h2 {
+  margin: 0 0 1rem;
+  color: #19343a;
+  font-size: 1.3rem;
+}
+
+.project-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.project-form-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.project-form-field label {
+  color: #19343a;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.project-form-field input,
+.project-form-field textarea {
+  width: 100%;
+  border: 1px solid #b8c7ca;
+  padding: 0.8rem 0.9rem;
+  background: #fff;
+  color: #19343a;
+  font: inherit;
+}
+
+.project-form-field textarea {
+  resize: vertical;
+  min-height: 7rem;
+}
+
+.project-form-field input:focus,
+.project-form-field textarea:focus,
+.projects-search input:focus {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.project-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+  border: 0;
+  padding: 0.8rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: #19343a;
+  color: #fff;
+}
+
+.secondary-button {
+  background: #edf2f3;
+  color: #19343a;
+}
+
+.danger-button {
+  background: #a23d32;
+  color: #fff;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.project-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.project-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem;
+}
+
+.project-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.project-header-row h3 {
+  margin: 0;
+  color: #19343a;
+  font-size: 1.15rem;
+}
+
+.project-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #607178;
+}
+
+.project-description {
+  margin: 0 0 0.75rem;
+  color: #607178;
+  line-height: 1.6;
+}
+
+.project-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: #607178;
+  font-size: 0.88rem;
+}
+
+.project-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.empty-state,
+.form-error,
+.field-error {
+  margin: 0;
+  color: #607178;
+}
+
+.form-error {
+  color: #a23d32;
+}
+
+.field-error {
+  color: #a23d32;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 720px) {
   .login-page {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+
+  .projects-header,
+  .project-item,
+  .projects-search,
+  .project-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .project-actions {
+    width: 100%;
+  }
+
+  .project-actions button {
+    flex: 1;
   }
 }
