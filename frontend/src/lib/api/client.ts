@@ -1,3 +1,5 @@
+import { getStoredSession } from '../auth/session';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
@@ -27,9 +29,14 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const { body, headers, ...requestOptions } = options;
   const requestHeaders = new Headers(headers);
+  const token = getStoredSession()?.token;
 
   if (body !== undefined) {
     requestHeaders.set('Content-Type', 'application/json');
+  }
+
+  if (token) {
+    requestHeaders.set('Authorization', `Bearer ${token}`);
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {

@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { ApiError } from '../../../lib/api/client';
+import { useAuth } from '../context/useAuth';
 import { loginSchema, type LoginFormValues } from '../schemas';
 import { login } from '../api';
 
@@ -12,6 +14,8 @@ const initialValues: LoginFormValues = {
 type FieldErrors = Partial<Record<keyof LoginFormValues, string>>;
 
 export function LoginPage() {
+  const navigate = useNavigate();
+  const { login: saveAuthSession } = useAuth();
   const [values, setValues] = useState<LoginFormValues>(initialValues);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [requestError, setRequestError] = useState('');
@@ -48,7 +52,8 @@ export function LoginPage() {
 
     try {
       const response = await login(parsedValues.data);
-      setSuccessMessage(`Bienvenido, ${response.user.name}. Tu sesión está lista.`);
+      saveAuthSession(response.user, response.token);
+      navigate('/');
     } catch (error: unknown) {
       if (error instanceof ApiError) {
         if (error.status === 401) {
