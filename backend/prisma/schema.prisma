@@ -50,7 +50,7 @@ model User {
 
 model Project {
   id          String        @id @default(uuid())
-  name        String
+  name        String        @unique
   description String?
   status      ProjectStatus @default(ACTIVE)
   createdAt   DateTime      @default(now()) @map("created_at")

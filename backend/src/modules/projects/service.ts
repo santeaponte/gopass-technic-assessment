@@ -29,6 +29,10 @@ export class ProjectService {
 				ownerId,
 			});
 		} catch (error: unknown) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+				throw new AppError(409, 'Project name is already in use');
+			}
+
 			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
 				throw new AppError(404, 'Project owner not found');
 			}
@@ -39,7 +43,16 @@ export class ProjectService {
 
 	public async update(id: string, input: UpdateProjectInput) {
 		await this.ensureExists(id);
-		return this.projectRepository.update(id, input);
+
+		try {
+			return await this.projectRepository.update(id, input);
+		} catch (error: unknown) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+				throw new AppError(409, 'Project name is already in use');
+			}
+
+			throw error;
+		}
 	}
 
 	public async delete(id: string): Promise<void> {
