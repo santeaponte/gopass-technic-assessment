@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 
 import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
@@ -15,6 +15,14 @@ const initialFormValues: ProjectFormValues = {
   startDate: '',
   dueDate: '',
 };
+
+function sortProjectsByDueDate(projects: Project[]): Project[] {
+  return [...projects].sort((first, second) => {
+    if (!first.dueDate) return 1;
+    if (!second.dueDate) return -1;
+    return first.dueDate.localeCompare(second.dueDate);
+  });
+}
 
 export function ProjectsPage() {
   const { user } = useAuth();
@@ -58,7 +66,7 @@ export function ProjectsPage() {
     try {
       const nextProjects = await getProjects(term.trim());
       setError('');
-      setProjects(nextProjects);
+      setProjects(sortProjectsByDueDate(nextProjects));
     } catch (requestError) {
       console.error(requestError);
       setError('No pudimos cargar los proyectos. Inténtalo de nuevo.');
@@ -69,29 +77,13 @@ export function ProjectsPage() {
   }, []);
 
   useEffect(() => {
-    const loadInitialProjects = async (): Promise<void> => {
-      try {
-        const nextProjects = await getProjects('');
-        setError('');
-        setProjects(nextProjects);
-      } catch (requestError) {
-        console.error(requestError);
-        setError('No pudimos cargar los proyectos. Inténtalo de nuevo.');
-        setProjects([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const timeoutId = window.setTimeout(() => {
+      setLoading(true);
+      void loadProjects(search);
+    }, 300);
 
-    void loadInitialProjects();
-  }, []);
-
-  const handleSearchSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
-    await loadProjects(search);
-  };
+    return () => window.clearTimeout(timeoutId);
+  }, [loadProjects, search]);
 
   const handleCreate = async (values: ProjectFormValues): Promise<void> => {
     if (!isAdmin) {
@@ -103,7 +95,7 @@ export function ProjectsPage() {
 
     try {
       const createdProject = await createProject(values);
-      setProjects((currentProjects) => [createdProject, ...currentProjects]);
+      setProjects((currentProjects) => sortProjectsByDueDate([createdProject, ...currentProjects]));
       setIsFormOpen(false);
       setEditingProject(null);
     } catch (requestError) {
@@ -128,9 +120,9 @@ export function ProjectsPage() {
 
     try {
       const updatedProject = await updateProject(editingProject.id, values);
-      setProjects((currentProjects) =>
+      setProjects((currentProjects) => sortProjectsByDueDate(
         currentProjects.map((project) => (project.id === updatedProject.id ? updatedProject : project)),
-      );
+      ));
       setIsFormOpen(false);
       setEditingProject(null);
     } catch (requestError) {
@@ -156,9 +148,9 @@ export function ProjectsPage() {
 
     try {
       const updatedProject = await updateProjectStatus(project.id, nextStatus);
-      setProjects((currentProjects) =>
+      setProjects((currentProjects) => sortProjectsByDueDate(
         currentProjects.map((item) => (item.id === updatedProject.id ? updatedProject : item)),
-      );
+      ));
       return updatedProject;
     } catch (requestError) {
       console.error(requestError);
@@ -207,7 +199,7 @@ export function ProjectsPage() {
         )}
       </section>
 
-      <form className="projects-search" onSubmit={handleSearchSubmit} noValidate>
+      <form className="projects-search" onSubmit={(event) => event.preventDefault()} noValidate>
         <input
           type="search"
           value={search}
@@ -215,9 +207,6 @@ export function ProjectsPage() {
           placeholder="Buscar proyectos"
           aria-label="Buscar proyectos"
         />
-        <button type="submit" className="secondary-button">
-          Buscar
-        </button>
       </form>
 
       {error && <p className="form-error" role="alert">{error}</p>}
