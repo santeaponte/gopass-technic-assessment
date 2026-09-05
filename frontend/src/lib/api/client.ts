@@ -4,6 +4,23 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
 };
 
+type ApiErrorBody = {
+  error?: string;
+  details?: unknown;
+};
+
+export class ApiError extends Error {
+  public readonly status: number;
+  public readonly details?: unknown;
+
+  public constructor(status: number, message: string, details?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
+
 export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {},
@@ -22,7 +39,19 @@ export async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
+    let errorBody: ApiErrorBody = {};
+
+    try {
+      errorBody = (await response.json()) as ApiErrorBody;
+    } catch {
+      // Keep the HTTP status when the server does not return JSON.
+    }
+
+    throw new ApiError(
+      response.status,
+      errorBody.error ?? `API request failed with status ${response.status}`,
+      errorBody.details,
+    );
   }
 
   if (response.status === 204) {
