@@ -1,0 +1,145 @@
+.app-shell {
+  min-height: 100svh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #d9e1e5;
+  padding: 1.25rem 2rem;
+}
+
+.app-brand {
+  height: 65px;
+  width: auto;
+  display: block;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+  margin-right: 1rem;
+}
+
+.app-nav-link {
+  border-bottom: 2px solid transparent;
+  padding: 0.45rem 0.65rem;
+  color: #607178;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-nav-link:hover,
+.app-nav-link:focus-visible,
+.app-nav-link-active {
+  border-bottom-color: #2dcd2b;
+  color: #3a2019;
+}
+
+.app-nav-link-disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 2px solid #b8c7ca;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem 0.45rem 0.45rem;
+  color: #19343a;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-menu-trigger:focus,
+.user-menu-logout:focus {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.user-avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: #fff;
+  background: #1d0901;
+  font-size: 0.9rem;
+}
+
+.user-name {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: min(18rem, calc(100vw - 2rem));
+  border: 1px solid #d9e1e5;
+  background: #fff;
+  box-shadow: 0 0.75rem 2rem rgb(25 52 58 / 12%);
+}
+
+.user-menu-details {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+}
+
+.user-menu-name {
+  color: #19343a;
+}
+
+.user-menu-email,
+.user-menu-role {
+  color: #607178;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.user-menu-role {
+  color: #df6b3f;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.user-menu-logout {
+  display: block;
+  width: auto;
+  border: 0;
+  border-radius: 7px;
+  margin: 0 1rem 1rem;
+  padding: 0.5rem 0.75rem;
+  color: #a23d32;
+  background: #f8e5e2;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.app-content {
+  margin: 24px auto;
+  max-width: 72rem;
+  padding: 3rem 2rem;
+}

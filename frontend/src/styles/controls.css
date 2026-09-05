@@ -1,0 +1,77 @@
+.project-form-field input,
+.project-form-field textarea {
+  width: 100%;
+  border: 1px solid #b8c7ca;
+  border-radius: 7px;
+  padding: 0.8rem 0.9rem;
+  background: #fff;
+  color: #19343a;
+  font: inherit;
+}
+
+.project-form-field textarea {
+  resize: vertical;
+  min-height: 7rem;
+}
+
+.project-form-field input:focus,
+.project-form-field textarea:focus,
+.projects-search input:focus {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.project-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+  border: 0;
+  border-radius: 7px;
+  padding: 0.8rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: #19343a;
+  color: #fff;
+}
+
+.secondary-button {
+  background: #edf2f3;
+  color: #19343a;
+}
+
+.danger-button {
+  background: #a23d32;
+  color: #fff;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.empty-state,
+.form-error,
+.field-error {
+  margin: 0;
+  color: #607178;
+}
+
+.form-error {
+  color: #a23d32;
+}
+
+.field-error {
+  color: #a23d32;
+  font-size: 0.9rem;
+}
