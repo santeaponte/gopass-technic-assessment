@@ -8,13 +8,13 @@
 }
 
 .app-brand {
-  color: #19343a;
-  font-size: 1.25rem;
-  font-weight: 700;
+  height: 50px;
+  width: auto;
+  display: block;
 }
 
 .app-content {
-  margin: 0 auto;
+  margin: 50px auto;
   max-width: 72rem;
   padding: 3rem 2rem;
 }

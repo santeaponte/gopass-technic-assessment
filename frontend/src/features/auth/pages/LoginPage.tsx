@@ -76,10 +76,10 @@ export function LoginPage() {
       <section className="login-intro" aria-labelledby="login-title">
         <p className="login-kicker">Gopass workspace</p>
         <h1 className="login-title" id="login-title">
-          Vuelve al trabajo importante.
+          Gopass: haz que pase.
         </h1>
         <p className="login-copy">
-          Gestiona proyectos y tareas con una vista clara de lo que sigue.
+          Proyectos, tareas y equipos en un solo lugar.
         </p>
       </section>
 
