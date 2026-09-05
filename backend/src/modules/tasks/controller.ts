@@ -60,7 +60,12 @@ export class TaskController {
 
 	public archive = async (request: Request, response: Response): Promise<void> => {
 		const { id } = taskIdSchema.parse(request.params);
-		await this.taskService.archive(id);
+		const user = request.user;
+		if (!user) {
+			response.status(401).json({ error: 'Authentication required' });
+			return;
+		}
+		await this.taskService.archive(id, user.userId, user.role);
 		response.status(204).send();
 	};
 }

@@ -117,8 +117,11 @@ export class TaskService {
 		});
 	}
 
-	public async archive(id: string): Promise<void> {
-		await this.findById(id);
+	public async archive(id: string, userId: string, role: UserRole): Promise<void> {
+		const task = await this.findById(id, userId, role);
+		if (role === 'VIEWER' && task.creatorId !== userId) {
+			throw new AppError(403, 'Only the task creator can archive this task');
+		}
 		try {
 			await this.taskRepository.archive(id);
 		} catch (error: unknown) {
