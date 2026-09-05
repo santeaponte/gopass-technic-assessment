@@ -1,4 +1,4 @@
-import type { Prisma, ProjectStatus, UserRole } from '@prisma/client';
+import type { Prisma, ProjectStatus, TaskPriority, UserRole } from '@prisma/client';
 
 import { prisma } from '../../shared/prisma';
 
@@ -15,6 +15,7 @@ const projectSelect = {
 	name: true,
 	description: true,
 	status: true,
+	priority: true,
 	createdAt: true,
 	updatedAt: true,
 	startDate: true,
@@ -32,6 +33,7 @@ export type CreateProjectData = {
 	name: string;
 	description?: string;
 	status?: ProjectStatus;
+	priority?: TaskPriority;
 	startDate?: Date;
 	dueDate?: Date;
 	ownerId: string;
@@ -41,6 +43,7 @@ export type UpdateProjectData = {
 	name?: string;
 	description?: string;
 	status?: ProjectStatus;
+	priority?: TaskPriority;
 	startDate?: Date;
 	dueDate?: Date;
 };

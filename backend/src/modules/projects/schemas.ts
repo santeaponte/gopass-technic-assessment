@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const projectStatusSchema = z.enum(['ACTIVE', 'PAUSED', 'IN_REVIEW', 'COMPLETED', 'CANCELLED']);
+const projectPrioritySchema = z.enum(['LOW', 'MEDIUM', 'HIGH']);
 const dateSchema = z.coerce.date();
 
 const projectDatesSchema = (data: { startDate?: Date; dueDate?: Date }) =>
@@ -18,6 +19,7 @@ export const createProjectSchema = z.object({
 	name: z.string().trim().min(1).max(200),
 	description: z.string().trim().max(5000).optional(),
 	status: projectStatusSchema.optional(),
+	priority: projectPrioritySchema.optional(),
 	startDate: dateSchema.optional(),
 	dueDate: dateSchema.optional(),
 }).refine(projectDatesSchema, {
@@ -30,6 +32,7 @@ export const updateProjectSchema = z
 		name: z.string().trim().min(1).max(200).optional(),
 		description: z.string().trim().max(5000).optional(),
 		status: projectStatusSchema.optional(),
+		priority: projectPrioritySchema.optional(),
 		startDate: dateSchema.optional(),
 		dueDate: dateSchema.optional(),
 	})
