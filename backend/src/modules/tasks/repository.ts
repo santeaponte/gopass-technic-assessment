@@ -72,19 +72,31 @@ export class TaskRepository {
 		return prisma.$transaction(async (transactionClient) => callback(new TaskRepository(transactionClient)));
 	}
 
-	public findAll(search?: string, projectId?: string): Promise<TaskRecord[]> {
+	public findAll(search: string | undefined, projectId: string | undefined, userId: string, role: UserRole): Promise<TaskRecord[]> {
 		const where: Prisma.TaskWhereInput = {
 			archivedAt: null,
 			...(projectId ? { projectId } : {}),
-			...(search
-				? {
-					OR: [
-						{ title: { contains: search, mode: 'insensitive' } },
-						{ description: { contains: search, mode: 'insensitive' } },
-					],
-				}
-				: {}),
 		};
+		const filters: Prisma.TaskWhereInput[] = [];
+
+		if (search) {
+			filters.push({
+				OR: [
+					{ title: { contains: search, mode: 'insensitive' } },
+					{ description: { contains: search, mode: 'insensitive' } },
+				],
+			});
+		}
+
+		if (role === 'VIEWER') {
+			filters.push({
+				OR: [{ creatorId: userId }, { assigneeId: userId }],
+			});
+		}
+
+		if (filters.length > 0) {
+			where.AND = filters;
+		}
 
 		return this.database.task.findMany({
 			where,
@@ -93,9 +105,15 @@ export class TaskRepository {
 		});
 	}
 
-	public findById(id: string): Promise<TaskRecord | null> {
+	public findById(id: string, userId?: string, role?: UserRole): Promise<TaskRecord | null> {
+		const where: Prisma.TaskWhereInput = { id, archivedAt: null };
+
+		if (role === 'VIEWER' && userId) {
+			where.OR = [{ creatorId: userId }, { assigneeId: userId }];
+		}
+
 		return this.database.task.findFirst({
-			where: { id, archivedAt: null },
+			where,
 			select: taskSelect,
 		});
 	}

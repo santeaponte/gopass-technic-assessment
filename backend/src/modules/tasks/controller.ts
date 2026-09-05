@@ -8,12 +8,22 @@ export class TaskController {
 
 	public findAll = async (request: Request, response: Response): Promise<void> => {
 		const { search, projectId } = taskSearchSchema.parse(request.query);
-		response.status(200).json(await this.taskService.findAll(search, projectId));
+		const user = request.user;
+		if (!user) {
+			response.status(401).json({ error: 'Authentication required' });
+			return;
+		}
+		response.status(200).json(await this.taskService.findAll(search, projectId, user.userId, user.role));
 	};
 
 	public findById = async (request: Request, response: Response): Promise<void> => {
 		const { id } = taskIdSchema.parse(request.params);
-		response.status(200).json(await this.taskService.findById(id));
+		const user = request.user;
+		if (!user) {
+			response.status(401).json({ error: 'Authentication required' });
+			return;
+		}
+		response.status(200).json(await this.taskService.findById(id, user.userId, user.role));
 	};
 
 	public create = async (request: Request, response: Response): Promise<void> => {
