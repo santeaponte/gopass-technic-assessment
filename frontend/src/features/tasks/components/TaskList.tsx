@@ -13,22 +13,11 @@ const priorityLabels = {
   HIGH: 'Alta',
 } as const;
 
-const nextStatuses: Record<TaskStatus, TaskStatus | null> = {
-  PENDING: 'IN_PROGRESS',
-  IN_PROGRESS: 'IN_REVIEW',
-  IN_REVIEW: 'DONE',
-  DONE: null,
-};
-
 type TaskListProps = {
   tasks: Task[];
-  currentUserId: string;
-  isAdmin: boolean;
   canCreate: boolean;
   onCreate: () => void;
-  onEdit: (task: Task) => void;
-  onArchive: (task: Task) => void;
-  onChangeStatus: (task: Task, status: TaskStatus) => void;
+  onOpen: (task: Task) => void;
 };
 
 function formatDate(value: string | null): string | null {
@@ -42,7 +31,7 @@ function formatDate(value: string | null): string | null {
   }).format(new Date(value));
 }
 
-export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, onEdit, onArchive, onChangeStatus }: TaskListProps) {
+export function TaskList({ tasks, canCreate, onCreate, onOpen }: TaskListProps) {
   const statuses: TaskStatus[] = ['PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
 
   return (
@@ -59,45 +48,20 @@ export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, o
 
             <div className="task-column-body">
               {columnTasks.map((task) => {
-                const canChangeStatus = isAdmin || task.assignee?.id === currentUserId;
-                const nextStatus = nextStatuses[task.status];
                 const dueDate = formatDate(task.dueDate);
 
                 return (
-                  <article key={task.id} className="task-item">
+                  <button key={task.id} type="button" className="task-item" onClick={() => onOpen(task)}>
                     <div className="task-main">
                       <div className="task-heading">
                         <span className={`task-priority task-priority-${task.priority.toLowerCase()}`}>
                           Prioridad {priorityLabels[task.priority]}
                         </span>
                         <h3>{task.title}</h3>
-                        <span className={`task-status task-status-${task.status.toLowerCase()}`}>
-                          {statusLabels[task.status]}
-                        </span>
                       </div>
-
-                      <p className="task-description">{task.description || 'Sin descripción.'}</p>
-
-                      <div className="task-meta">
-                        <span>Responsable: {task.assignee?.name || 'Sin asignar'}</span>
-                        {dueDate && <span>Entrega: {dueDate}</span>}
-                      </div>
+                      <p className="task-due-date">Entrega: {dueDate || 'Sin fecha'}</p>
                     </div>
-
-                    <div className="task-actions">
-                      {canChangeStatus && nextStatus && (
-                        <button type="button" className="secondary-button" onClick={() => onChangeStatus(task, nextStatus)}>
-                          Pasar a {statusLabels[nextStatus]}
-                        </button>
-                      )}
-                      {isAdmin && (
-                        <>
-                          <button type="button" className="secondary-button" onClick={() => onEdit(task)}>Editar</button>
-                          <button type="button" className="danger-button" onClick={() => onArchive(task)}>Archivar</button>
-                        </>
-                      )}
-                    </div>
-                  </article>
+                  </button>
                 );
               })}
 

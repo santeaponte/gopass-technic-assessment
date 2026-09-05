@@ -38,6 +38,7 @@ export type Task = {
   notes: string | null;
   projectId: string;
   project: TaskProject;
+  creator: TaskUser;
   archivedAt: string | null;
   createdAt: string;
   updatedAt: string;

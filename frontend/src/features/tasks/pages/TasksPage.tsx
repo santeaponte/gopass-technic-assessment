@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { ApiError } from '../../../lib/api/client';
@@ -7,6 +7,7 @@ import { getUsers } from '../../users/api';
 import { getProject } from '../../projects/api';
 import { archiveTask, changeTaskStatus, createTask, getTasks, updateTask } from '../api';
 import { TaskForm } from '../components/TaskForm';
+import { TaskDetailModal } from '../components/TaskDetailModal';
 import { TaskList } from '../components/TaskList';
 import type { Task, TaskFormValues, TaskStatus } from '../types';
 import type { Project } from '../../projects/types';
@@ -30,6 +31,14 @@ function toFormValues(task: Task): TaskFormValues {
   };
 }
 
+function sortTasksByDueDate(tasks: Task[]): Task[] {
+  return [...tasks].sort((first, second) => {
+    if (!first.dueDate) return 1;
+    if (!second.dueDate) return -1;
+    return first.dueDate.localeCompare(second.dueDate);
+  });
+}
+
 export function TasksPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const { user } = useAuth();
@@ -44,11 +53,12 @@ export function TasksPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const loadTasks = useCallback(async (term: string): Promise<void> => {
     try {
       const nextTasks = await getTasks(term.trim(), projectId);
-      setTasks(nextTasks);
+      setTasks(sortTasksByDueDate(nextTasks));
       setError('');
     } catch (requestError) {
       console.error(requestError);
@@ -60,35 +70,31 @@ export function TasksPage() {
   }, [projectId]);
 
   useEffect(() => {
-    const loadInitialData = async (): Promise<void> => {
+    const loadProjectAndUsers = async (): Promise<void> => {
       try {
-        const nextProject = projectId ? await getProject(projectId) : null;
-        const [nextTasks, nextUsers] = await Promise.all([
-          getTasks('', projectId),
+        const [nextProject, nextUsers] = await Promise.all([
+          projectId ? getProject(projectId) : Promise.resolve(null),
           isAdmin ? getUsers() : Promise.resolve([]),
         ]);
         setProject(nextProject);
-        setTasks(nextTasks);
         setUsers(nextUsers);
-        setError('');
       } catch (requestError) {
         console.error(requestError);
         setError('No pudimos cargar este proyecto. Inténtalo de nuevo.');
-        setTasks([]);
-      } finally {
-        setLoading(false);
       }
     };
 
-    void loadInitialData();
+    void loadProjectAndUsers();
   }, [isAdmin, projectId]);
 
-  const handleSearchSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
-    await loadTasks(search);
-  };
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setLoading(true);
+      void loadTasks(search);
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadTasks, search]);
 
   const handleCreate = async (values: TaskFormValues): Promise<void> => {
     if (!isAdmin) {
@@ -107,7 +113,7 @@ export function TasksPage() {
       if (!createdTask) {
         throw new Error('Task creation returned no task');
       }
-      setTasks((currentTasks) => [createdTask, ...currentTasks]);
+      setTasks((currentTasks) => sortTasksByDueDate([createdTask, ...currentTasks]));
       setIsFormOpen(false);
       setEditingTask(null);
     } catch (requestError) {
@@ -131,7 +137,9 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
-      setTasks((currentTasks) => currentTasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+      setTasks((currentTasks) => sortTasksByDueDate(
+        currentTasks.map((task) => task.id === updatedTask.id ? updatedTask : task),
+      ));
       setIsFormOpen(false);
       setEditingTask(null);
     } catch (requestError) {
@@ -169,11 +177,29 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task status update returned no task');
       }
-      setTasks((currentTasks) => currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item));
+      setTasks((currentTasks) => sortTasksByDueDate(
+        currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item),
+      ));
     } catch (requestError) {
       console.error(requestError);
       setError(requestError instanceof ApiError ? requestError.message : 'No pudimos actualizar el estado.');
     }
+  };
+
+  const handleModalEdit = (task: Task): void => {
+    setSelectedTask(null);
+    setEditingTask(task);
+    setIsFormOpen(true);
+  };
+
+  const handleModalArchive = async (task: Task): Promise<void> => {
+    await handleArchive(task);
+    setSelectedTask(null);
+  };
+
+  const handleModalStatus = async (task: Task, status: TaskStatus): Promise<void> => {
+    await handleChangeStatus(task, status);
+    setSelectedTask((currentTask) => currentTask ? { ...currentTask, status } : null);
   };
 
   const closeForm = () => {
@@ -194,7 +220,7 @@ export function TasksPage() {
         </div>
       </section>
 
-      <form className="tasks-search" onSubmit={handleSearchSubmit} noValidate>
+      <form className="tasks-search" onSubmit={(event) => event.preventDefault()} noValidate>
         <input
           type="search"
           value={search}
@@ -202,7 +228,6 @@ export function TasksPage() {
           placeholder="Buscar tareas"
           aria-label="Buscar tareas"
         />
-        <button type="submit" className="secondary-button">Buscar</button>
       </form>
 
       {error && <p className="form-error" role="alert">{error}</p>}
@@ -229,13 +254,21 @@ export function TasksPage() {
       ) : (
         <TaskList
           tasks={tasks}
-          currentUserId={user?.id ?? ''}
-          isAdmin={isAdmin}
           canCreate={isAdmin && Boolean(projectId)}
           onCreate={() => { setEditingTask(null); setIsFormOpen(true); }}
-          onEdit={(task) => { setEditingTask(task); setIsFormOpen(true); }}
-          onArchive={handleArchive}
-          onChangeStatus={handleChangeStatus}
+          onOpen={setSelectedTask}
+        />
+      )}
+
+      {selectedTask && (
+        <TaskDetailModal
+          task={selectedTask}
+          currentUserId={user?.id ?? ''}
+          isAdmin={isAdmin}
+          onClose={() => setSelectedTask(null)}
+          onEdit={handleModalEdit}
+          onArchive={handleModalArchive}
+          onChangeStatus={handleModalStatus}
         />
       )}
     </main>
