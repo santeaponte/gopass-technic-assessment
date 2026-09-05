@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
 import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
@@ -24,16 +24,10 @@ export function ProjectsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
 
-  useEffect(() => {
-    void loadProjects(search);
-  }, [search]);
-
-  const loadProjects = async (term = search): Promise<void> => {
-    setLoading(true);
-    setError('');
-
+  const loadProjects = useCallback(async (term: string): Promise<void> => {
     try {
       const nextProjects = await getProjects(term.trim());
+      setError('');
       setProjects(nextProjects);
     } catch (requestError) {
       console.error(requestError);
@@ -42,10 +36,30 @@ export function ProjectsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const loadInitialProjects = async (): Promise<void> => {
+      try {
+        const nextProjects = await getProjects('');
+        setError('');
+        setProjects(nextProjects);
+      } catch (requestError) {
+        console.error(requestError);
+        setError('No pudimos cargar los proyectos. Inténtalo de nuevo.');
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadInitialProjects();
+  }, []);
 
   const handleSearchSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setLoading(true);
+    setError('');
     await loadProjects(search);
   };
 
