@@ -56,7 +56,7 @@ export class ProjectRepository {
 		if (role === 'VIEWER') {
 			where.tasks = {
 				some: {
-					assigneeId: userId,
+					OR: [{ creatorId: userId }, { assigneeId: userId }],
 					archivedAt: null,
 				},
 			};
@@ -75,7 +75,7 @@ export class ProjectRepository {
 		if (role === 'VIEWER' && userId) {
 			where.tasks = {
 				some: {
-					assigneeId: userId,
+					OR: [{ creatorId: userId }, { assigneeId: userId }],
 					archivedAt: null,
 				},
 			};
