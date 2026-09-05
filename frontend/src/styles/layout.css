@@ -143,3 +143,17 @@
   max-width: 72rem;
   padding: 3rem 2rem;
 }
+
+.app-content:has(.projects-page, .tasks-page) {
+  width: 100%;
+  min-height: calc(100svh - 24px);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background-image: linear-gradient(rgb(255 252 247 / 84%), rgb(255 252 247 / 84%)),
+    url('../assets/images/image.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+}
