@@ -2,7 +2,8 @@
   "name": "gopass",
   "private": true,
   "workspaces": [
-    "backend"
+    "backend",
+    "frontend"
   ],
   "dependencies": {
     "dotenv": "^17.4.2",
