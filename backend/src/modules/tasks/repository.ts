@@ -35,6 +35,17 @@ const taskSelect = {
 	updatedAt: true,
 	dueDate: true,
 	assignee: { select: publicUserSelect },
+	statusHistory: {
+		orderBy: { createdAt: 'asc' },
+		select: {
+			id: true,
+			fromStatus: true,
+			toStatus: true,
+			comment: true,
+			createdAt: true,
+			changedByUser: { select: publicUserSelect },
+		},
+	},
 } as const;
 
 type DatabaseClient = typeof prisma | Prisma.TransactionClient;

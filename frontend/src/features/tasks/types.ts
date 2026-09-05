@@ -9,6 +9,15 @@ export type TaskUser = {
   createdAt: string;
 };
 
+export type TaskStatusChange = {
+  id: string;
+  fromStatus: TaskStatus | null;
+  toStatus: TaskStatus;
+  comment: string | null;
+  createdAt: string;
+  changedByUser: TaskUser;
+};
+
 export type TaskProject = {
   id: string;
   name: string;
@@ -34,6 +43,7 @@ export type Task = {
   updatedAt: string;
   dueDate: string | null;
   assignee: TaskUser | null;
+  statusHistory: TaskStatusChange[];
 };
 
 export type TaskFormValues = {
