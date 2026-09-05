@@ -63,7 +63,7 @@ export type CreateTaskData = {
 	dueDate?: Date | null;
 	assigneeId?: string | null;
 };
-export type UpdateTaskData = Partial<Omit<CreateTaskData, 'creatorId'>>;
+export type UpdateTaskData = Partial<CreateTaskData>;
 
 export class TaskRepository {
 	public constructor(private readonly database: DatabaseClient = prisma) {}

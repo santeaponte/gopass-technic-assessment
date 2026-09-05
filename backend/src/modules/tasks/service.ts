@@ -53,18 +53,29 @@ export class TaskService {
 		});
 	}
 
-	public async update(id: string, input: UpdateTaskInput) {
+	public async update(id: string, input: UpdateTaskInput, userId: string, role: UserRole) {
 		return this.taskRepository.transaction(async (repository) => {
-			await this.ensureTaskExists(repository, id);
+			const task = await repository.findById(id, userId, role);
+			if (!task) {
+				throw new AppError(404, 'Task not found');
+			}
+
+			if (role === 'VIEWER' && Object.keys(input).some((field) => field !== 'assigneeId')) {
+				throw new AppError(403, 'Viewers can only update the task assignee');
+			}
+
 			if (input.projectId) {
 				await this.ensureProjectExists(repository, input.projectId);
 			}
 			if (input.assigneeId) {
 				await this.ensureUserExists(repository, input.assigneeId);
 			}
+			if (input.creatorId) {
+				await this.ensureUserExists(repository, input.creatorId);
+			}
 
 			await repository.update(id, input);
-			return repository.findById(id);
+			return repository.findById(id, userId, role);
 		});
 	}
 

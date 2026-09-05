@@ -27,6 +27,7 @@ export const updateTaskSchema = z.object({
 	description: z.string().trim().max(5000).nullable().optional(),
 	priority: taskPrioritySchema.optional(),
 	projectId: z.string().uuid().optional(),
+	creatorId: z.string().uuid().optional(),
 	dueDate: dateSchema.nullable().optional(),
 	assigneeId: z.string().uuid().nullable().optional(),
 }).strict().refine((data) => Object.keys(data).length > 0, {

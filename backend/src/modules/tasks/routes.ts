@@ -15,6 +15,6 @@ export const tasksRouter = Router();
 tasksRouter.get('/', authenticate, taskController.findAll);
 tasksRouter.get('/:id', authenticate, taskController.findById);
 tasksRouter.post('/', authenticate, taskController.create);
-tasksRouter.patch('/:id', authenticate, authorize('ADMIN'), taskController.update);
+tasksRouter.patch('/:id', authenticate, taskController.update);
 tasksRouter.delete('/:id', authenticate, authorize('ADMIN'), taskController.archive);
 tasksRouter.patch('/:id/status', authenticate, taskController.changeStatus);

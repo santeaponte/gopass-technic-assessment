@@ -39,7 +39,12 @@ export class TaskController {
 	public update = async (request: Request, response: Response): Promise<void> => {
 		const { id } = taskIdSchema.parse(request.params);
 		const input = updateTaskSchema.parse(request.body);
-		response.status(200).json(await this.taskService.update(id, input));
+		const user = request.user;
+		if (!user) {
+			response.status(401).json({ error: 'Authentication required' });
+			return;
+		}
+		response.status(200).json(await this.taskService.update(id, input, user.userId, user.role));
 	};
 
 	public changeStatus = async (request: Request, response: Response): Promise<void> => {
