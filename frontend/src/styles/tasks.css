@@ -1,4 +1,8 @@
 .tasks-page {
+  width: min(72rem, 100%);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 3rem 2rem;
   display: grid;
   gap: 1.5rem;
 }
