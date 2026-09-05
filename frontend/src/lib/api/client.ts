@@ -11,6 +11,20 @@ type ApiErrorBody = {
   details?: unknown;
 };
 
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export function registerUnauthorizedHandler(handler: UnauthorizedHandler): () => void {
+  unauthorizedHandler = handler;
+
+  return () => {
+    if (unauthorizedHandler === handler) {
+      unauthorizedHandler = null;
+    }
+  };
+}
+
 export class ApiError extends Error {
   public readonly status: number;
   public readonly details?: unknown;
@@ -46,6 +60,10 @@ export async function apiRequest<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      unauthorizedHandler?.();
+    }
+
     let errorBody: ApiErrorBody = {};
 
     try {

@@ -3,6 +3,10 @@
 }
 
 .app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   border-bottom: 1px solid #d9e1e5;
   padding: 1.25rem 2rem;
 }
@@ -11,6 +15,94 @@
   height: 50px;
   width: auto;
   display: block;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid #b8c7ca;
+  padding: 0.45rem 0.7rem 0.45rem 0.45rem;
+  color: #19343a;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-menu-trigger:focus,
+.user-menu-logout:focus {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.user-avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: #fff;
+  background: #df6b3f;
+  font-size: 0.9rem;
+}
+
+.user-name {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: min(18rem, calc(100vw - 2rem));
+  border: 1px solid #d9e1e5;
+  background: #fff;
+  box-shadow: 0 0.75rem 2rem rgb(25 52 58 / 12%);
+}
+
+.user-menu-details {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+}
+
+.user-menu-name {
+  color: #19343a;
+}
+
+.user-menu-email,
+.user-menu-role {
+  color: #607178;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.user-menu-role {
+  color: #df6b3f;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.user-menu-logout {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #d9e1e5;
+  padding: 0.8rem 1rem;
+  color: #a23d32;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
 }
 
 .app-content {
@@ -330,6 +422,10 @@
 }
 
 @media (max-width: 720px) {
+  .app-header {
+    padding: 1rem;
+  }
+
   .login-page {
     grid-template-columns: 1fr;
     gap: 2rem;
@@ -349,5 +445,9 @@
 
   .project-actions button {
     flex: 1;
+  }
+
+  .user-name {
+    max-width: 8rem;
   }
 }
