@@ -5,19 +5,25 @@ import { TaskRepository } from './repository';
 import type { ChangeTaskStatusInput, CreateTaskInput, UpdateTaskInput } from './schemas';
 
 const allowedTransitions: Record<TaskStatus, Partial<Record<TaskStatus, UserRole[]>>> = {
-	PENDING: { IN_PROGRESS: ['ADMIN', 'VIEWER'] },
-	IN_PROGRESS: { IN_REVIEW: ['ADMIN', 'VIEWER'] },
+	PENDING: {
+		IN_PROGRESS: ['ADMIN', 'VIEWER'],
+		IN_REVIEW: ['ADMIN', 'VIEWER'],
+	},
+	IN_PROGRESS: {
+		PENDING: ['ADMIN', 'VIEWER'],
+		IN_REVIEW: ['ADMIN', 'VIEWER'],
+	},
 	IN_REVIEW: {
 		DONE: ['ADMIN'],
-		IN_PROGRESS: ['ADMIN'],
-		PENDING: ['ADMIN'],
+		IN_PROGRESS: ['ADMIN', 'VIEWER'],
+		PENDING: ['ADMIN', 'VIEWER'],
 	},
 	DONE: {},
 };
 
 const validNextStatuses: Record<TaskStatus, TaskStatus[]> = {
-	PENDING: ['IN_PROGRESS'],
-	IN_PROGRESS: ['IN_REVIEW'],
+	PENDING: ['IN_PROGRESS', 'IN_REVIEW'],
+	IN_PROGRESS: ['PENDING', 'IN_REVIEW'],
 	IN_REVIEW: ['DONE', 'IN_PROGRESS', 'PENDING'],
 	DONE: [],
 };
