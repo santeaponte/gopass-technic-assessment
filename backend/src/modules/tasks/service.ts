@@ -40,11 +40,8 @@ export class TaskService {
 	public async create(input: CreateTaskInput, changedBy: string) {
 		return this.taskRepository.transaction(async (repository) => {
 			await this.ensureProjectExists(repository, input.projectId);
-			await this.ensureUsersExist(repository, input.assigneeIds ?? []);
-
-			const { assigneeIds, ...taskData } = input;
-			const task = await repository.create(taskData);
-			await repository.replaceAssignees(task.id, assigneeIds ?? []);
+			await this.ensureUserExists(repository, input.assigneeId);
+			const task = await repository.create(input);
 			await repository.createStatusChange({
 				taskId: task.id,
 				fromStatus: null,
@@ -62,16 +59,11 @@ export class TaskService {
 			if (input.projectId) {
 				await this.ensureProjectExists(repository, input.projectId);
 			}
-			if (input.assigneeIds) {
-				await this.ensureUsersExist(repository, input.assigneeIds);
+			if (input.assigneeId) {
+				await this.ensureUserExists(repository, input.assigneeId);
 			}
 
-			const { assigneeIds, ...taskData } = input;
-			await repository.update(id, taskData);
-			if (assigneeIds) {
-				await repository.replaceAssignees(id, assigneeIds);
-			}
-
+			await repository.update(id, input);
 			return repository.findById(id);
 		});
 	}
@@ -85,6 +77,10 @@ export class TaskService {
 
 			if (!validNextStatuses[currentTask.status].includes(input.status)) {
 				throw new AppError(409, 'Invalid task status transition');
+			}
+
+			if (role === 'VIEWER' && currentTask.assigneeId !== changedBy) {
+				throw new AppError(403, 'Only the assigned viewer can change this task status');
 			}
 
 			const permittedRoles = allowedTransitions[currentTask.status][input.status] ?? [];
@@ -131,14 +127,14 @@ export class TaskService {
 		}
 	}
 
-	private async ensureUsersExist(repository: TaskRepository, ids: string[]): Promise<void> {
-		if (ids.length === 0) {
+	private async ensureUserExists(repository: TaskRepository, id: string | null | undefined): Promise<void> {
+		if (!id) {
 			return;
 		}
 
-		const users = await repository.findUsersByIds(ids);
-		if (users.length !== ids.length) {
-			throw new AppError(404, 'One or more assignees were not found');
+		const user = await repository.findUserById(id);
+		if (!user) {
+			throw new AppError(404, 'Assignee was not found');
 		}
 	}
 }

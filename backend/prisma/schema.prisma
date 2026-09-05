@@ -41,7 +41,7 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
 
   ownedProjects Project[]          @relation("ProjectOwner")
-  assignedTasks TaskAssignee[]
+  assignedTasks Task[] @relation("UserAssignedTasks")
   statusChanges TaskStatusChange[] @relation("StatusChangedBy")
 
   @@map("users")
@@ -81,25 +81,13 @@ model Task {
   updatedAt  DateTime  @updatedAt @map("updated_at")
   dueDate    DateTime? @map("due_date") @db.Date
 
-  assignees     TaskAssignee[]
+  assigneeId String? @map("assignee_id")
+  assignee   User?   @relation("UserAssignedTasks", fields: [assigneeId], references: [id], onDelete: SetNull)
   statusHistory TaskStatusChange[]
 
   @@index([projectId])
+  @@index([assigneeId])
   @@map("tasks")
-}
-
-model TaskAssignee {
-  id String @id @default(uuid())
-
-  taskId String @map("task_id")
-  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
-
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([taskId, userId])
-  @@index([userId])
-  @@map("task_assignees")
 }
 
 model TaskStatusChange {

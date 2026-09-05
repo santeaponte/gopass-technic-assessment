@@ -34,11 +34,7 @@ const taskSelect = {
 	createdAt: true,
 	updatedAt: true,
 	dueDate: true,
-	assignees: {
-		select: {
-			user: { select: publicUserSelect },
-		},
-	},
+	assignee: { select: publicUserSelect },
 } as const;
 
 type DatabaseClient = typeof prisma | Prisma.TransactionClient;
@@ -50,6 +46,7 @@ export type CreateTaskData = {
 	priority?: TaskPriority;
 	projectId: string;
 	dueDate?: Date | null;
+	assigneeId?: string | null;
 };
 export type UpdateTaskData = Partial<CreateTaskData>;
 
@@ -91,8 +88,8 @@ export class TaskRepository {
 		return this.database.project.findUnique({ where: { id }, select: { id: true } });
 	}
 
-	public findUsersByIds(ids: string[]): Promise<Array<{ id: string }>> {
-		return this.database.user.findMany({ where: { id: { in: ids } }, select: { id: true } });
+	public findUserById(id: string): Promise<{ id: string } | null> {
+		return this.database.user.findUnique({ where: { id }, select: { id: true } });
 	}
 
 	public create(data: CreateTaskData): Promise<TaskRecord> {
@@ -111,16 +108,6 @@ export class TaskRepository {
 		return this.database.task.update({ where: { id }, data: { archivedAt: new Date() }, select: { id: true } }).then(() => undefined);
 	}
 
-	public replaceAssignees(taskId: string, userIds: string[]): Promise<void> {
-		return this.database.taskAssignee.deleteMany({ where: { taskId } }).then(async () => {
-			if (userIds.length > 0) {
-				await this.database.taskAssignee.createMany({
-					data: userIds.map((userId) => ({ taskId, userId })),
-				});
-			}
-		});
-	}
-
 	public createStatusChange(data: {
 		taskId: string;
 		fromStatus: TaskStatus | null;
@@ -131,8 +118,11 @@ export class TaskRepository {
 		return this.database.taskStatusChange.create({ data }).then(() => undefined);
 	}
 
-	public async getCurrentStatus(id: string): Promise<{ status: TaskStatus } | null> {
-		return this.database.task.findFirst({ where: { id, archivedAt: null }, select: { status: true } });
+	public async getCurrentStatus(id: string): Promise<{ status: TaskStatus; assigneeId: string | null } | null> {
+		return this.database.task.findFirst({
+			where: { id, archivedAt: null },
+			select: { status: true, assigneeId: true },
+		});
 	}
 }
 
