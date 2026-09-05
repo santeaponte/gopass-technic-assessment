@@ -8,6 +8,14 @@ export const projectFormSchema = z.object({
     .max(5000, 'La descripción es demasiado larga.')
     .optional()
     .transform((value) => value ?? ''),
-});
+  startDate: z.string(),
+  dueDate: z.string(),
+}).refine(
+  (values) => !values.startDate || !values.dueDate || values.startDate <= values.dueDate,
+  {
+    message: 'La fecha de inicio debe ser anterior o igual a la fecha de entrega.',
+    path: ['dueDate'],
+  },
+);
 
 export type ProjectFormValues = z.infer<typeof projectFormSchema>;

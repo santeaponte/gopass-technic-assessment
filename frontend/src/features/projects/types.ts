@@ -15,11 +15,14 @@ export type Project = {
   status: ProjectStatus;
   createdAt: string;
   updatedAt: string;
-  dueDate?: string | null;
+  startDate: string | null;
+  dueDate: string | null;
   owner: ProjectOwner;
 };
 
 export type ProjectFormValues = {
   name: string;
   description: string;
+  startDate: string;
+  dueDate: string;
 };

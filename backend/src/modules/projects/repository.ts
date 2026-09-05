@@ -17,6 +17,7 @@ const projectSelect = {
 	status: true,
 	createdAt: true,
 	updatedAt: true,
+	startDate: true,
 	dueDate: true,
 	owner: {
 		select: ownerSelect,
@@ -31,6 +32,7 @@ export type CreateProjectData = {
 	name: string;
 	description?: string;
 	status?: ProjectStatus;
+	startDate?: Date;
 	dueDate?: Date;
 	ownerId: string;
 };
@@ -39,6 +41,7 @@ export type UpdateProjectData = {
 	name?: string;
 	description?: string;
 	status?: ProjectStatus;
+	startDate?: Date;
 	dueDate?: Date;
 };
 

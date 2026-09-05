@@ -60,6 +60,34 @@
   border-radius: 10px;
 }
 
+.project-form-modal-backdrop {
+  position: fixed;
+  z-index: 11;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 38%);
+}
+
+.project-form-modal {
+  position: relative;
+  width: min(36rem, 100%);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 2rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 20%);
+}
+
+.project-form-modal h2 {
+  margin: 0 0 1.25rem;
+  color: #19343a;
+  font-size: 1.45rem;
+}
+
 .project-panel h2 {
   margin: 0 0 1rem;
   color: #19343a;

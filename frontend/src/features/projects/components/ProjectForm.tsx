@@ -15,6 +15,8 @@ type FieldErrors = Partial<Record<keyof ProjectFormValues, string>>;
 const emptyValues: ProjectFormValues = {
   name: '',
   description: '',
+  startDate: '',
+  dueDate: '',
 };
 
 export function ProjectForm({
@@ -50,7 +52,7 @@ export function ProjectForm({
       parsedValues.error.issues.forEach((issue) => {
         const field = issue.path[0];
 
-        if (field === 'name' || field === 'description') {
+        if (field === 'name' || field === 'description' || field === 'startDate' || field === 'dueDate') {
           nextErrors[field] = issue.message;
         }
       });
@@ -62,6 +64,8 @@ export function ProjectForm({
     onSubmit({
       name: parsedValues.data.name,
       description: parsedValues.data.description ?? '',
+      startDate: parsedValues.data.startDate,
+      dueDate: parsedValues.data.dueDate,
     });
   };
 
@@ -92,6 +96,32 @@ export function ProjectForm({
           rows={5}
         />
         {fieldErrors.description && <p className="field-error">{fieldErrors.description}</p>}
+      </div>
+
+      <div className="project-form-field">
+        <label htmlFor="project-start-date">Fecha de inicio</label>
+        <input
+          id="project-start-date"
+          name="project-start-date"
+          type="date"
+          value={values.startDate}
+          onChange={(event) => handleChange('startDate', event.target.value)}
+          aria-invalid={fieldErrors.startDate ? 'true' : undefined}
+        />
+        {fieldErrors.startDate && <p className="field-error">{fieldErrors.startDate}</p>}
+      </div>
+
+      <div className="project-form-field">
+        <label htmlFor="project-due-date">Fecha de entrega</label>
+        <input
+          id="project-due-date"
+          name="project-due-date"
+          type="date"
+          value={values.dueDate}
+          onChange={(event) => handleChange('dueDate', event.target.value)}
+          aria-invalid={fieldErrors.dueDate ? 'true' : undefined}
+        />
+        {fieldErrors.dueDate && <p className="field-error">{fieldErrors.dueDate}</p>}
       </div>
 
       <div className="project-form-actions">

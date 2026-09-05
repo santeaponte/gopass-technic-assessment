@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, useRef } from 'react';
 
 import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
@@ -11,6 +11,8 @@ import type { Project, ProjectFormValues } from '../types';
 const initialFormValues: ProjectFormValues = {
   name: '',
   description: '',
+  startDate: '',
+  dueDate: '',
 };
 
 export function ProjectsPage() {
@@ -25,6 +27,30 @@ export function ProjectsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const projectFormModalRef = useRef<HTMLDivElement>(null);
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditingProject(null);
+    setError('');
+  };
+
+  useEffect(() => {
+    if (!isFormOpen) {
+      return undefined;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeForm();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    projectFormModalRef.current?.focus();
+
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isFormOpen]);
 
   const loadProjects = useCallback(async (term: string): Promise<void> => {
     try {
@@ -162,12 +188,6 @@ export function ProjectsPage() {
     }
   };
 
-  const closeForm = () => {
-    setIsFormOpen(false);
-    setEditingProject(null);
-    setError('');
-  };
-
   return (
     <main className="projects-page">
       <section className="projects-header">
@@ -200,24 +220,39 @@ export function ProjectsPage() {
       {error && <p className="form-error" role="alert">{error}</p>}
 
       {isFormOpen && (
-        <section className="project-panel">
-          <h2>{editingProject ? 'Editar proyecto' : 'Nuevo proyecto'}</h2>
-          <ProjectForm
-            key={editingProject ? editingProject.id : 'new-project'}
-            initialValues={
-              editingProject
-                ? {
-                    name: editingProject.name,
-                    description: editingProject.description ?? '',
-                  }
-                : initialFormValues
-            }
-            submitLabel={editingProject ? 'Guardar cambios' : 'Crear proyecto'}
-            onSubmit={editingProject ? handleEdit : handleCreate}
-            onCancel={closeForm}
-            isSubmitting={isSubmitting}
-          />
-        </section>
+        <div className="project-form-modal-backdrop" role="presentation" onMouseDown={closeForm}>
+          <div
+            ref={projectFormModalRef}
+            className="project-form-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="project-form-title"
+            tabIndex={-1}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button type="button" className="project-modal-close" onClick={closeForm} aria-label="Cerrar formulario">
+              ×
+            </button>
+            <h2 id="project-form-title">{editingProject ? 'Editar proyecto' : 'Nuevo proyecto'}</h2>
+            <ProjectForm
+              key={editingProject ? editingProject.id : 'new-project'}
+              initialValues={
+                editingProject
+                  ? {
+                      name: editingProject.name,
+                      description: editingProject.description ?? '',
+                      startDate: editingProject.startDate?.slice(0, 10) ?? '',
+                      dueDate: editingProject.dueDate?.slice(0, 10) ?? '',
+                    }
+                  : initialFormValues
+              }
+              submitLabel={editingProject ? 'Guardar cambios' : 'Crear proyecto'}
+              onSubmit={editingProject ? handleEdit : handleCreate}
+              onCancel={closeForm}
+              isSubmitting={isSubmitting}
+            />
+          </div>
+        </div>
       )}
 
       {loading ? (
