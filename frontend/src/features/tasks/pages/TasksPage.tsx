@@ -31,7 +31,7 @@ function toFormValues(task: Task): TaskFormValues {
 }
 
 export function TasksPage() {
-  const { projectId = '' } = useParams<{ projectId: string }>();
+  const { projectId } = useParams<{ projectId: string }>();
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -62,8 +62,8 @@ export function TasksPage() {
   useEffect(() => {
     const loadInitialData = async (): Promise<void> => {
       try {
-        const [nextProject, nextTasks, nextUsers] = await Promise.all([
-          getProject(projectId),
+        const nextProject = projectId ? await getProject(projectId) : null;
+        const [nextTasks, nextUsers] = await Promise.all([
           getTasks('', projectId),
           isAdmin ? getUsers() : Promise.resolve([]),
         ]);
@@ -99,6 +99,10 @@ export function TasksPage() {
     setError('');
 
     try {
+      if (!projectId) {
+        return;
+      }
+
       const createdTask = await createTask(projectId, values);
       if (!createdTask) {
         throw new Error('Task creation returned no task');
@@ -123,7 +127,7 @@ export function TasksPage() {
     setError('');
 
     try {
-      const updatedTask = await updateTask(editingTask.id, projectId, values);
+      const updatedTask = await updateTask(editingTask.id, editingTask.projectId, values);
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
@@ -180,19 +184,14 @@ export function TasksPage() {
 
   return (
     <main className="tasks-page">
-      <Link className="back-link" to="/projects">← Volver a proyectos</Link>
+      {projectId && <Link className="back-link" to="/projects">← Volver a proyectos</Link>}
 
       <section className="tasks-header">
         <div>
           <p className="tasks-kicker">Proyecto</p>
-          <h1>{project?.name ?? 'Tareas del proyecto'}</h1>
+          <h1>{project?.name ?? 'Tareas'}</h1>
           {project?.description && <p className="tasks-intro">{project.description}</p>}
         </div>
-        {isAdmin && (
-          <button type="button" className="primary-button" onClick={() => { setEditingTask(null); setIsFormOpen(true); }}>
-            Nueva tarea
-          </button>
-        )}
       </section>
 
       <form className="tasks-search" onSubmit={handleSearchSubmit} noValidate>
@@ -232,6 +231,8 @@ export function TasksPage() {
           tasks={tasks}
           currentUserId={user?.id ?? ''}
           isAdmin={isAdmin}
+          canCreate={isAdmin && Boolean(projectId)}
+          onCreate={() => { setEditingTask(null); setIsFormOpen(true); }}
           onEdit={(task) => { setEditingTask(task); setIsFormOpen(true); }}
           onArchive={handleArchive}
           onChangeStatus={handleChangeStatus}

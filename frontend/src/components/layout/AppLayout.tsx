@@ -80,15 +80,12 @@ export function AppLayout() {
             <NavLink to="/projects" end className={({ isActive }) => isActive ? 'app-nav-link app-nav-link-active' : 'app-nav-link'}>
               Proyectos
             </NavLink>
-            {projectTasksPath ? (
-              <NavLink to={projectTasksPath} className={({ isActive }) => isActive ? 'app-nav-link app-nav-link-active' : 'app-nav-link'}>
-                Tareas
-              </NavLink>
-            ) : (
-              <span className="app-nav-link app-nav-link-disabled" aria-disabled="true">
-                Tareas
-              </span>
-            )}
+            <NavLink
+              to={projectTasksPath ?? '/tasks'}
+              className={({ isActive }) => isActive || pathname === '/tasks' ? 'app-nav-link app-nav-link-active' : 'app-nav-link'}
+            >
+              Tareas
+            </NavLink>
           </nav>
         )}
         {isAuthenticated && user && (
