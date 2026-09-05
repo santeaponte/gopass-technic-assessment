@@ -37,9 +37,9 @@ export class TaskService {
 		return task;
 	}
 
-	public async create(input: CreateTaskInput, creatorId: string) {
+	public async create(input: CreateTaskInput, creatorId: string, role: UserRole) {
 		return this.taskRepository.transaction(async (repository) => {
-			await this.ensureProjectExists(repository, input.projectId);
+			await this.ensureProjectExists(repository, input.projectId, creatorId, role);
 			await this.ensureUserExists(repository, input.assigneeId);
 			const task = await repository.create({ ...input, creatorId });
 			await repository.createStatusChange({
@@ -120,8 +120,8 @@ export class TaskService {
 		}
 	}
 
-	private async ensureProjectExists(repository: TaskRepository, id: string): Promise<void> {
-		const project = await repository.findProjectById(id);
+	private async ensureProjectExists(repository: TaskRepository, id: string, userId?: string, role?: UserRole): Promise<void> {
+		const project = await repository.findProjectById(id, userId, role);
 		if (!project) {
 			throw new AppError(404, 'Project not found');
 		}

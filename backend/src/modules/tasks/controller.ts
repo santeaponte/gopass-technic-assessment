@@ -28,12 +28,12 @@ export class TaskController {
 
 	public create = async (request: Request, response: Response): Promise<void> => {
 		const input = createTaskSchema.parse(request.body);
-		const creatorId = request.user?.userId;
-		if (!creatorId) {
+		const user = request.user;
+		if (!user) {
 			response.status(401).json({ error: 'Authentication required' });
 			return;
 		}
-		response.status(201).json(await this.taskService.create(input, creatorId));
+		response.status(201).json(await this.taskService.create(input, user.userId, user.role));
 	};
 
 	public update = async (request: Request, response: Response): Promise<void> => {

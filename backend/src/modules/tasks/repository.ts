@@ -118,8 +118,19 @@ export class TaskRepository {
 		});
 	}
 
-	public findProjectById(id: string): Promise<{ id: string } | null> {
-		return this.database.project.findUnique({ where: { id }, select: { id: true } });
+	public findProjectById(id: string, userId?: string, role?: UserRole): Promise<{ id: string } | null> {
+		const where: Prisma.ProjectWhereInput = { id };
+
+		if (role === 'VIEWER' && userId) {
+			where.tasks = {
+				some: {
+					OR: [{ creatorId: userId }, { assigneeId: userId }],
+					archivedAt: null,
+				},
+			};
+		}
+
+		return this.database.project.findFirst({ where, select: { id: true } });
 	}
 
 	public findUserById(id: string): Promise<{ id: string } | null> {
