@@ -25,8 +25,8 @@ const validNextStatuses: Record<TaskStatus, TaskStatus[]> = {
 export class TaskService {
 	public constructor(private readonly taskRepository: TaskRepository) {}
 
-	public findAll(search?: string) {
-		return this.taskRepository.findAll(search);
+	public findAll(search?: string, projectId?: string) {
+		return this.taskRepository.findAll(search, projectId);
 	}
 
 	public async findById(id: string) {

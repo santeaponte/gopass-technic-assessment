@@ -1,4 +1,4 @@
-import type { Prisma, ProjectStatus } from '@prisma/client';
+import type { Prisma, ProjectStatus, UserRole } from '@prisma/client';
 
 import { prisma } from '../../shared/prisma';
 
@@ -43,15 +43,24 @@ export type UpdateProjectData = {
 };
 
 export class ProjectRepository {
-	public findAll(search?: string): Promise<ProjectRecord[]> {
-		const where: Prisma.ProjectWhereInput | undefined = search
-			? {
-				OR: [
-					{ name: { contains: search, mode: 'insensitive' } },
-					{ description: { contains: search, mode: 'insensitive' } },
-				],
-			}
-			: undefined;
+	public findAll(search: string | undefined, userId: string, role: UserRole): Promise<ProjectRecord[]> {
+		const where: Prisma.ProjectWhereInput = {};
+
+		if (search) {
+			where.OR = [
+				{ name: { contains: search, mode: 'insensitive' } },
+				{ description: { contains: search, mode: 'insensitive' } },
+			];
+		}
+
+		if (role === 'VIEWER') {
+			where.tasks = {
+				some: {
+					assigneeId: userId,
+					archivedAt: null,
+				},
+			};
+		}
 
 		return prisma.project.findMany({
 			where,
@@ -60,9 +69,20 @@ export class ProjectRepository {
 		});
 	}
 
-	public findById(id: string): Promise<ProjectRecord | null> {
-		return prisma.project.findUnique({
-			where: { id },
+	public findById(id: string, userId?: string, role?: UserRole): Promise<ProjectRecord | null> {
+		const where: Prisma.ProjectWhereInput = { id };
+
+		if (role === 'VIEWER' && userId) {
+			where.tasks = {
+				some: {
+					assigneeId: userId,
+					archivedAt: null,
+				},
+			};
+		}
+
+		return prisma.project.findFirst({
+			where,
 			select: projectSelect,
 		});
 	}

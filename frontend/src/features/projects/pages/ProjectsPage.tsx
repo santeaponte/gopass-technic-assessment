@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
@@ -13,6 +14,7 @@ const initialFormValues: ProjectFormValues = {
 };
 
 export function ProjectsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -161,7 +163,8 @@ export function ProjectsPage() {
       <section className="projects-header">
         <div>
           <p className="projects-kicker">Proyectos</p>
-          <h1>Gestión de proyectos</h1>
+          <h1>Tu espacio de trabajo</h1>
+          <p className="projects-intro">Entra en un proyecto para continuar con sus tareas.</p>
         </div>
 
         {isAdmin && (
@@ -215,6 +218,7 @@ export function ProjectsPage() {
         <ProjectList
           projects={projects}
           canManage={isAdmin}
+          onOpen={(project) => navigate(`/projects/${project.id}/tasks`)}
           onEdit={openEditForm}
           onDelete={handleDelete}
         />

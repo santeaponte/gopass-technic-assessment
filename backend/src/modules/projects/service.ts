@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import type { UserRole } from '@prisma/client';
 
 import { AppError } from '../../shared/errors';
 import { ProjectRepository } from './repository';
@@ -7,12 +8,12 @@ import type { CreateProjectInput, UpdateProjectInput } from './schemas';
 export class ProjectService {
 	public constructor(private readonly projectRepository: ProjectRepository) {}
 
-	public findAll(search?: string) {
-		return this.projectRepository.findAll(search);
+	public findAll(search: string | undefined, userId: string, role: UserRole) {
+		return this.projectRepository.findAll(search, userId, role);
 	}
 
-	public async findById(id: string) {
-		const project = await this.projectRepository.findById(id);
+	public async findById(id: string, userId: string, role: UserRole) {
+		const project = await this.projectRepository.findById(id, userId, role);
 
 		if (!project) {
 			throw new AppError(404, 'Project not found');

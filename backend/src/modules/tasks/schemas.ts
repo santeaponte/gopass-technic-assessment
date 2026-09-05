@@ -10,6 +10,7 @@ export const taskIdSchema = z.object({
 
 export const taskSearchSchema = z.object({
 	search: z.string().trim().min(1).max(200).optional(),
+	projectId: z.string().uuid().optional(),
 });
 
 export const createTaskSchema = z.object({

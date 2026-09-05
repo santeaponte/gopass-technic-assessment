@@ -8,13 +8,25 @@ export class ProjectController {
 
 	public findAll = async (request: Request, response: Response): Promise<void> => {
 		const { search } = projectSearchSchema.parse(request.query);
-		const projects = await this.projectService.findAll(search);
+		const user = request.user;
+		if (!user) {
+			response.status(401).json({ error: 'Authentication required' });
+			return;
+		}
+
+		const projects = await this.projectService.findAll(search, user.userId, user.role);
 		response.status(200).json(projects);
 	};
 
 	public findById = async (request: Request, response: Response): Promise<void> => {
 		const { id } = projectIdSchema.parse(request.params);
-		const project = await this.projectService.findById(id);
+		const user = request.user;
+		if (!user) {
+			response.status(401).json({ error: 'Authentication required' });
+			return;
+		}
+
+		const project = await this.projectService.findById(id, user.userId, user.role);
 		response.status(200).json(project);
 	};
 

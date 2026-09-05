@@ -7,8 +7,8 @@ export class TaskController {
 	public constructor(private readonly taskService: TaskService) {}
 
 	public findAll = async (request: Request, response: Response): Promise<void> => {
-		const { search } = taskSearchSchema.parse(request.query);
-		response.status(200).json(await this.taskService.findAll(search));
+		const { search, projectId } = taskSearchSchema.parse(request.query);
+		response.status(200).json(await this.taskService.findAll(search, projectId));
 	};
 
 	public findById = async (request: Request, response: Response): Promise<void> => {

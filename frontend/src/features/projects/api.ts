@@ -6,6 +6,10 @@ export function getProjects(search?: string): Promise<Project[]> {
   return apiRequest<Project[]>(`/projects${query}`);
 }
 
+export function getProject(id: string): Promise<Project> {
+  return apiRequest<Project>(`/projects/${id}`);
+}
+
 export function createProject(values: ProjectFormValues): Promise<Project> {
   return apiRequest<Project>('/projects', {
     method: 'POST',

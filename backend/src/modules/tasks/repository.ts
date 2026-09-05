@@ -57,9 +57,10 @@ export class TaskRepository {
 		return prisma.$transaction(async (transactionClient) => callback(new TaskRepository(transactionClient)));
 	}
 
-	public findAll(search?: string): Promise<TaskRecord[]> {
+	public findAll(search?: string, projectId?: string): Promise<TaskRecord[]> {
 		const where: Prisma.TaskWhereInput = {
 			archivedAt: null,
+			...(projectId ? { projectId } : {}),
 			...(search
 				? {
 					OR: [

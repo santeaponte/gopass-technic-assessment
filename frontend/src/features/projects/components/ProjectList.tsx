@@ -3,11 +3,20 @@ import type { Project } from '../types';
 type ProjectListProps = {
   projects: Project[];
   canManage: boolean;
+  onOpen: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
 };
 
-export function ProjectList({ projects, canManage, onEdit, onDelete }: ProjectListProps) {
+const statusLabels: Record<Project['status'], string> = {
+  ACTIVE: 'Activo',
+  PAUSED: 'Pausado',
+  IN_REVIEW: 'En revisión',
+  COMPLETED: 'Completado',
+  CANCELLED: 'Cancelado',
+};
+
+export function ProjectList({ projects, canManage, onOpen, onEdit, onDelete }: ProjectListProps) {
   if (projects.length === 0) {
     return <p className="empty-state">No hay proyectos para mostrar.</p>;
   }
@@ -16,21 +25,24 @@ export function ProjectList({ projects, canManage, onEdit, onDelete }: ProjectLi
     <ul className="project-list">
       {projects.map((project) => (
         <li key={project.id} className="project-item">
-          <div className="project-main">
-            <div className="project-header-row">
-              <h3>{project.name}</h3>
-              <span className="project-status">{project.status}</span>
-            </div>
+          <button type="button" className="project-main" onClick={() => onOpen(project)}>
+            <span className="project-header-row">
+              <span className="project-title">{project.name}</span>
+              <span className={`project-status project-status-${project.status.toLowerCase()}`}>
+                {statusLabels[project.status]}
+              </span>
+            </span>
 
-            <p className="project-description">
+            <span className="project-description">
               {project.description || 'Sin descripción.'}
-            </p>
+            </span>
 
-            <div className="project-meta">
+            <span className="project-meta">
               <span>Propietario: {project.owner.name}</span>
-              <span>Rol: {project.owner.role}</span>
-            </div>
-          </div>
+              {project.dueDate && <span>Entrega: {project.dueDate}</span>}
+            </span>
+            <span className="project-open-label">Ver tareas <span aria-hidden="true">→</span></span>
+          </button>
 
           {canManage && (
             <div className="project-actions">
