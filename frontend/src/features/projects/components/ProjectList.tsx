@@ -7,11 +7,22 @@ type ProjectListProps = {
 
 const statusLabels: Record<Project['status'], string> = {
   ACTIVE: 'Activo',
-  PAUSED: 'Pausado',
+  PAUSED: 'Inactivo',
   IN_REVIEW: 'En revisión',
   COMPLETED: 'Completado',
   CANCELLED: 'Cancelado',
 };
+
+const priorityLabels: Record<Project['priority'], string> = {
+  LOW: 'Baja',
+  MEDIUM: 'Media',
+  HIGH: 'Alta',
+};
+
+function formatDate(date: string): string {
+  const [year, month, day] = date.slice(0, 10).split('-');
+  return `${day}/${month}/${year}`;
+}
 
 export function ProjectList({ projects, onOpen }: ProjectListProps) {
   if (projects.length === 0) {
@@ -36,7 +47,14 @@ export function ProjectList({ projects, onOpen }: ProjectListProps) {
 
             <span className="project-meta">
               <span>Propietario: {project.owner.name}</span>
-              {project.dueDate && <span>Entrega: {project.dueDate}</span>}
+              <span className="project-meta-secondary">
+                <span className={`project-priority project-priority-${project.priority.toLowerCase()}`}>
+                  Prioridad {priorityLabels[project.priority]}
+                </span>
+                <span className="project-meta-due-date">
+                  Entrega: {project.dueDate ? formatDate(project.dueDate) : ' '}
+                </span>
+              </span>
             </span>
           </button>
 

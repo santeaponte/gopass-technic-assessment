@@ -1,4 +1,8 @@
 .projects-page {
+  width: min(72rem, 100%);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 3rem 2rem;
   display: grid;
   gap: 1.5rem;
 }
@@ -179,6 +183,11 @@
   color: #29634e;
 }
 
+.project-status-paused {
+  background: #f8e5e2;
+  color: #a23d32;
+}
+
 .project-status-in_review {
   background: #fff0dc;
   color: #8a5b20;
@@ -192,6 +201,32 @@
 .project-status-cancelled {
   background: #f8e5e2;
   color: #a23d32;
+}
+
+.project-priority {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.project-priority-low {
+  color: #3f7fad;
+  background: #eef6fc;
+}
+
+.project-priority-medium {
+  color: #a27a20;
+  background: #fff9e8;
+}
+
+.project-priority-high {
+  color: #b64b43;
+  background: #fff0ee;
 }
 
 .project-actions {
@@ -227,9 +262,22 @@
 .project-meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.75rem;
   color: #607178;
   font-size: 0.88rem;
+}
+
+.project-meta-due-date {
+  min-width: 0;
+}
+
+.project-meta-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 1.7rem;
 }
 
 .project-modal-backdrop {
@@ -314,6 +362,91 @@
   list-style: none;
 }
 
+.project-create-task-button {
+  width: 100%;
+  margin-top: 1rem;
+  border: 1px solid #b8c7ca;
+  border-radius: 7px;
+  padding: 0.65rem 0.85rem;
+  color: #19343a;
+  background: #edf2f3;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.project-create-task-button:hover,
+.project-create-task-button:focus-visible {
+  color: #19343a;
+  background: #d9e1e5;
+}
+
+.task-create-modal-backdrop {
+  position: fixed;
+  z-index: 12;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 42%);
+}
+
+.task-create-modal {
+  position: relative;
+  width: min(42rem, 100%);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 2rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 24%);
+}
+
+.task-create-modal h2 {
+  margin: 0 0 1.25rem;
+  color: #19343a;
+  font-size: 1.45rem;
+}
+
+.project-confirm-backdrop {
+  position: fixed;
+  z-index: 13;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 48%);
+}
+
+.project-confirm-modal {
+  width: min(28rem, 100%);
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 1.75rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 24%);
+}
+
+.project-confirm-modal h2 {
+  margin: 0;
+  color: #19343a;
+  font-size: 1.35rem;
+}
+
+.project-confirm-modal p:not(.projects-kicker) {
+  margin: 0.85rem 0 0;
+  color: #607178;
+  line-height: 1.5;
+}
+
+.project-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
 .project-task-item {
   display: flex;
   align-items: start;
@@ -354,7 +487,9 @@
 
 .project-task-status-in_review {
   color: #8a5b20;
-  background: #fff0dc;
+  border: 1px solid #d8b866;
+  color: #856923;
+  background: #fff8df;
 }
 
 .project-modal-description {
@@ -391,6 +526,39 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+.project-status-action {
+  border: 0;
+  border-radius: 7px;
+  padding: 0.8rem 1rem;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.project-status-action-deactivate {
+  background: #c65b52;
+}
+
+.project-status-action-deactivate:hover,
+.project-status-action-deactivate:focus-visible {
+  background: #a23d32;
+}
+
+.project-status-action-activate {
+  background: #3f7f68;
+}
+
+.project-status-action-activate:hover,
+.project-status-action-activate:focus-visible {
+  background: #2f654f;
+}
+
+.project-status-action:focus-visible {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
 }
 
 @media (max-width: 720px) {

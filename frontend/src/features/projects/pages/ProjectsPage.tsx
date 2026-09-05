@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent, useRef } from 'react'
 
 import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
-import { createProject, deleteProject, getProjects, updateProject } from '../api';
+import { createProject, getProjects, updateProject, updateProjectStatus } from '../api';
 import { ProjectDetailModal } from '../components/ProjectDetailModal';
 import { ProjectForm } from '../components/ProjectForm';
 import { ProjectList } from '../components/ProjectList';
@@ -11,6 +11,7 @@ import type { Project, ProjectFormValues } from '../types';
 const initialFormValues: ProjectFormValues = {
   name: '',
   description: '',
+  priority: 'MEDIUM',
   startDate: '',
   dueDate: '',
 };
@@ -23,6 +24,7 @@ export function ProjectsPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -32,7 +34,7 @@ export function ProjectsPage() {
   const closeForm = () => {
     setIsFormOpen(false);
     setEditingProject(null);
-    setError('');
+    setFormError('');
   };
 
   useEffect(() => {
@@ -97,7 +99,7 @@ export function ProjectsPage() {
     }
 
     setIsSubmitting(true);
-    setError('');
+    setFormError('');
 
     try {
       const createdProject = await createProject(values);
@@ -107,9 +109,9 @@ export function ProjectsPage() {
     } catch (requestError) {
       console.error(requestError);
       if (requestError instanceof ApiError) {
-        setError(requestError.message || 'No pudimos crear el proyecto.');
+        setFormError(requestError.message || 'No pudimos crear el proyecto.');
       } else {
-        setError('No pudimos crear el proyecto.');
+        setFormError('No pudimos crear el proyecto.');
       }
     } finally {
       setIsSubmitting(false);
@@ -122,7 +124,7 @@ export function ProjectsPage() {
     }
 
     setIsSubmitting(true);
-    setError('');
+    setFormError('');
 
     try {
       const updatedProject = await updateProject(editingProject.id, values);
@@ -134,57 +136,58 @@ export function ProjectsPage() {
     } catch (requestError) {
       console.error(requestError);
       if (requestError instanceof ApiError) {
-        setError(requestError.message || 'No pudimos editar el proyecto.');
+        setFormError(requestError.message || 'No pudimos editar el proyecto.');
       } else {
-        setError('No pudimos editar el proyecto.');
+        setFormError('No pudimos editar el proyecto.');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async (project: Project): Promise<boolean> => {
+  const handleStatusChange = async (project: Project): Promise<Project | null> => {
     if (!isAdmin) {
-      return false;
+      return null;
     }
 
-    const confirmed = window.confirm(`¿Eliminar el proyecto "${project.name}"?`);
-    if (!confirmed) {
-      return false;
-    }
-
+    const isActive = project.status === 'ACTIVE';
+    const nextStatus = isActive ? 'PAUSED' : 'ACTIVE';
     setError('');
 
     try {
-      await deleteProject(project.id);
-      setProjects((currentProjects) => currentProjects.filter((item) => item.id !== project.id));
-      return true;
+      const updatedProject = await updateProjectStatus(project.id, nextStatus);
+      setProjects((currentProjects) =>
+        currentProjects.map((item) => (item.id === updatedProject.id ? updatedProject : item)),
+      );
+      return updatedProject;
     } catch (requestError) {
       console.error(requestError);
       if (requestError instanceof ApiError) {
-        setError(requestError.message || 'No pudimos eliminar el proyecto.');
+        setError(requestError.message || 'No pudimos cambiar el estado del proyecto.');
       } else {
-        setError('No pudimos eliminar el proyecto.');
+        setError('No pudimos cambiar el estado del proyecto.');
       }
-      return false;
+      return null;
     }
   };
 
   const openCreateForm = () => {
     setEditingProject(null);
+    setFormError('');
     setIsFormOpen(true);
   };
 
   const openEditForm = (project: Project) => {
     setSelectedProject(null);
     setEditingProject(project);
+    setFormError('');
     setIsFormOpen(true);
   };
 
-  const handleModalDelete = async (project: Project): Promise<void> => {
-    const deleted = await handleDelete(project);
-    if (deleted) {
-      setSelectedProject(null);
+  const handleModalStatusChange = async (project: Project): Promise<void> => {
+    const updatedProject = await handleStatusChange(project);
+    if (updatedProject) {
+      setSelectedProject(updatedProject);
     }
   };
 
@@ -234,6 +237,7 @@ export function ProjectsPage() {
               ×
             </button>
             <h2 id="project-form-title">{editingProject ? 'Editar proyecto' : 'Nuevo proyecto'}</h2>
+            {formError && <p className="form-error" role="alert">{formError}</p>}
             <ProjectForm
               key={editingProject ? editingProject.id : 'new-project'}
               initialValues={
@@ -241,6 +245,7 @@ export function ProjectsPage() {
                   ? {
                       name: editingProject.name,
                       description: editingProject.description ?? '',
+                      priority: editingProject.priority,
                       startDate: editingProject.startDate?.slice(0, 10) ?? '',
                       dueDate: editingProject.dueDate?.slice(0, 10) ?? '',
                     }
@@ -272,7 +277,7 @@ export function ProjectsPage() {
           canManage={isAdmin}
           onClose={() => setSelectedProject(null)}
           onEdit={openEditForm}
-          onDelete={handleModalDelete}
+          onStatusChange={handleModalStatusChange}
         />
       )}
     </main>

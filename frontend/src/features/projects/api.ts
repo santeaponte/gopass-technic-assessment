@@ -16,6 +16,7 @@ export function createProject(values: ProjectFormValues): Promise<Project> {
     body: {
       name: values.name,
       description: values.description || undefined,
+      priority: values.priority,
       startDate: values.startDate || undefined,
       dueDate: values.dueDate || undefined,
     },
@@ -28,9 +29,17 @@ export function updateProject(id: string, values: ProjectFormValues): Promise<Pr
     body: {
       name: values.name,
       description: values.description || undefined,
+      priority: values.priority,
       startDate: values.startDate || undefined,
       dueDate: values.dueDate || undefined,
     },
+  });
+}
+
+export function updateProjectStatus(id: string, status: Project['status']): Promise<Project> {
+  return apiRequest<Project>(`/projects/${id}`, {
+    method: 'PATCH',
+    body: { status },
   });
 }
 

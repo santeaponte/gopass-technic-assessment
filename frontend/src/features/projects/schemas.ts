@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const projectFormSchema = z.object({
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
   name: z.string().trim().min(1, 'El nombre es obligatorio.').max(200, 'El nombre es demasiado largo.'),
   description: z
     .string()

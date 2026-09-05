@@ -15,6 +15,7 @@ type FieldErrors = Partial<Record<keyof ProjectFormValues, string>>;
 const emptyValues: ProjectFormValues = {
   name: '',
   description: '',
+  priority: 'MEDIUM',
   startDate: '',
   dueDate: '',
 };
@@ -52,7 +53,7 @@ export function ProjectForm({
       parsedValues.error.issues.forEach((issue) => {
         const field = issue.path[0];
 
-        if (field === 'name' || field === 'description' || field === 'startDate' || field === 'dueDate') {
+        if (field === 'name' || field === 'description' || field === 'priority' || field === 'startDate' || field === 'dueDate') {
           nextErrors[field] = issue.message;
         }
       });
@@ -64,6 +65,7 @@ export function ProjectForm({
     onSubmit({
       name: parsedValues.data.name,
       description: parsedValues.data.description ?? '',
+      priority: parsedValues.data.priority,
       startDate: parsedValues.data.startDate,
       dueDate: parsedValues.data.dueDate,
     });
@@ -96,6 +98,37 @@ export function ProjectForm({
           rows={5}
         />
         {fieldErrors.description && <p className="field-error">{fieldErrors.description}</p>}
+      </div>
+
+      <div className="project-form-field">
+        <span className="project-form-label">Prioridad</span>
+        <div className="project-priority-options" role="group" aria-label="Prioridad del proyecto">
+          <button
+            type="button"
+            className={`project-priority-choice project-priority-choice-low${values.priority === 'LOW' ? ' project-priority-choice-selected' : ''}`}
+            aria-pressed={values.priority === 'LOW'}
+            onClick={() => handleChange('priority', 'LOW')}
+          >
+            Baja
+          </button>
+          <button
+            type="button"
+            className={`project-priority-choice project-priority-choice-medium${values.priority === 'MEDIUM' ? ' project-priority-choice-selected' : ''}`}
+            aria-pressed={values.priority === 'MEDIUM'}
+            onClick={() => handleChange('priority', 'MEDIUM')}
+          >
+            Media
+          </button>
+          <button
+            type="button"
+            className={`project-priority-choice project-priority-choice-high${values.priority === 'HIGH' ? ' project-priority-choice-selected' : ''}`}
+            aria-pressed={values.priority === 'HIGH'}
+            onClick={() => handleChange('priority', 'HIGH')}
+          >
+            Alta
+          </button>
+        </div>
+        {fieldErrors.priority && <p className="field-error">{fieldErrors.priority}</p>}
       </div>
 
       <div className="project-form-field">
