@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import '../../App.css';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import logo from '../../assets/images/gopass_logo.webp';
 import { useAuth } from '../../features/auth/context/useAuth';
 
@@ -8,9 +8,12 @@ const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 
 export function AppLayout() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const projectTasksMatch = pathname.match(/^\/projects\/([^/]+)\/tasks(?:\/|$)/);
+  const projectTasksPath = projectTasksMatch ? `/projects/${projectTasksMatch[1]}/tasks` : null;
 
   const handleLogout = useCallback(() => {
     setIsUserMenuOpen(false);
@@ -72,6 +75,22 @@ export function AppLayout() {
     <main className="app-shell">
       <header className="app-header">
         <img className="app-brand" src={logo} alt="Gopass" />
+        {isAuthenticated && (
+          <nav className="app-nav" aria-label="Navegación principal">
+            <NavLink to="/projects" end className={({ isActive }) => isActive ? 'app-nav-link app-nav-link-active' : 'app-nav-link'}>
+              Proyectos
+            </NavLink>
+            {projectTasksPath ? (
+              <NavLink to={projectTasksPath} className={({ isActive }) => isActive ? 'app-nav-link app-nav-link-active' : 'app-nav-link'}>
+                Tareas
+              </NavLink>
+            ) : (
+              <span className="app-nav-link app-nav-link-disabled" aria-disabled="true">
+                Tareas
+              </span>
+            )}
+          </nav>
+        )}
         {isAuthenticated && user && (
           <div className="user-menu" ref={userMenuRef}>
             <button

@@ -41,7 +41,6 @@ export function ProjectList({ projects, canManage, onOpen, onEdit, onDelete }: P
               <span>Propietario: {project.owner.name}</span>
               {project.dueDate && <span>Entrega: {project.dueDate}</span>}
             </span>
-            <span className="project-open-label">Ver tareas <span aria-hidden="true">→</span></span>
           </button>
 
           {canManage && (
