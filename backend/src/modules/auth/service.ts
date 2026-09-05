@@ -5,7 +5,7 @@ import { signToken } from '../../shared/jwt';
 import { hashPassword, comparePassword } from '../../shared/password';
 import type { AuthResponse, PublicUser } from './types';
 import type { LoginInput, RegisterInput } from './schemas';
-import { UserRepository } from './repository';
+import { UserRepository } from '../users/repository';
 
 export class AuthService {
 	public constructor(private readonly userRepository: UserRepository) {}
