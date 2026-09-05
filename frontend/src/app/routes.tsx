@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { AppLayout } from '../components/layout/AppLayout';
 import { LoginPage } from '../features/auth/pages/LoginPage';
@@ -17,7 +17,7 @@ export const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          { index: true },
+          { index: true, element: <Navigate to="/projects" replace /> },
           { path: 'projects', element: <ProjectsPage /> },
         ],
       },
