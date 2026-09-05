@@ -81,6 +81,11 @@ export class TaskService {
 
 	public async changeStatus(id: string, input: ChangeTaskStatusInput, role: UserRole, changedBy: string) {
 		return this.taskRepository.transaction(async (repository) => {
+			const visibleTask = await repository.findById(id, changedBy, role);
+			if (!visibleTask) {
+				throw new AppError(404, 'Task not found');
+			}
+
 			const currentTask = await repository.getCurrentStatus(id);
 			if (!currentTask) {
 				throw new AppError(404, 'Task not found');
