@@ -114,8 +114,7 @@ export class ProjectRepository {
 	}
 
 	public delete(id: string): Promise<void> {
-		return prisma.project.delete({
-			where: { id },
-		}).then(() => undefined);
+		return prisma.project.delete({ where: { id } }).then(() => undefined);
 	}
+
 }

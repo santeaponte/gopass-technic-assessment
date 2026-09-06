@@ -10,6 +10,7 @@ import type { PublicUser } from '../../auth/types';
 import type { Project } from '../types';
 import { DescriptionPreview } from '../../../components/DescriptionPreview';
 import { formatDate, getProjectDisplayStatus } from '../../../lib/date';
+import { WarningModal } from '../../../components/WarningModal';
 
 type ProjectDetailModalProps = {
   project: Project;
@@ -19,6 +20,7 @@ type ProjectDetailModalProps = {
   onClose: () => void;
   onEdit: (project: Project) => void;
   onStatusChange: (project: Project) => void;
+  onDelete: (project: Project) => void;
 };
 
 const statusLabels: Record<TaskStatus, string> = {
@@ -42,6 +44,7 @@ export function ProjectDetailModal({
   onClose,
   onEdit,
   onStatusChange,
+  onDelete,
 }: ProjectDetailModalProps) {
   const navigate = useNavigate();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -53,6 +56,7 @@ export function ProjectDetailModal({
   const [isTaskSubmitting, setIsTaskSubmitting] = useState(false);
   const [taskError, setTaskError] = useState('');
   const [isStatusWarningOpen, setIsStatusWarningOpen] = useState(false);
+  const [isDeleteWarningOpen, setIsDeleteWarningOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isTaskEditFormOpen, setIsTaskEditFormOpen] = useState(false);
   const displayStatus = getProjectDisplayStatus(project.status, project.dueDate, tasks.map((task) => task.status));
@@ -229,6 +233,9 @@ export function ProjectDetailModal({
               + Agregar tarea
             </button>
           )}
+          {!canCreateTask && project.status !== 'ACTIVE' && (
+            <p className="form-error">El proyecto está inactivo. Actívalo para modificar sus tareas.</p>
+          )}
         </section>
 
         <aside className="project-modal-info">
@@ -270,8 +277,13 @@ export function ProjectDetailModal({
           />
           {canManage && (
             <div className="project-modal-actions">
-              <button type="button" className="secondary-button" onClick={() => onEdit(project)}>
-                Editar
+              {project.status === 'ACTIVE' && (
+                <button type="button" className="secondary-button" onClick={() => onEdit(project)}>
+                  Editar
+                </button>
+              )}
+              <button type="button" className="danger-button" onClick={() => setIsDeleteWarningOpen(true)}>
+                Eliminar
               </button>
               <button
                 type="button"
@@ -326,7 +338,7 @@ export function ProjectDetailModal({
               className="project-task-detail-text"
               emptyLabel="Sin notas."
             />
-            {(canManage || selectedTask.creator.id === currentUserId || selectedTask.assignee?.id === currentUserId) && (
+            {project.status === 'ACTIVE' && (canManage || selectedTask.creator.id === currentUserId || selectedTask.assignee?.id === currentUserId) && (
               <div className="project-task-detail-actions">
                 <button type="button" className="secondary-button" onClick={() => { setTaskError(''); setIsTaskEditFormOpen(true); }}>
                   {canManage ? 'Editar' : 'Editar notas'}
@@ -430,6 +442,18 @@ export function ProjectDetailModal({
             </div>
           </div>
         </div>
+      )}
+      {isDeleteWarningOpen && (
+        <WarningModal
+          title="¿Eliminar proyecto?"
+          message={`El proyecto "${project.name}" se eliminará permanentemente. Solo podrás eliminarlo si no tiene tareas asociadas.`}
+          confirmLabel="Eliminar proyecto"
+          onCancel={() => setIsDeleteWarningOpen(false)}
+          onConfirm={() => {
+            setIsDeleteWarningOpen(false);
+            onDelete(project);
+          }}
+        />
       )}
     </div>
   );

@@ -43,6 +43,11 @@ export class ProjectService {
 
 	public async update(id: string, input: UpdateProjectInput) {
 		const currentProject = await this.ensureExists(id);
+
+		if (currentProject.status !== 'ACTIVE' && (input.status !== 'ACTIVE' || Object.keys(input).some((field) => field !== 'status'))) {
+			throw new AppError(409, 'El proyecto está inactivo. Actívalo antes de modificarlo');
+		}
+
 		const startDate = input.startDate ?? currentProject.startDate;
 		const dueDate = input.dueDate ?? currentProject.dueDate;
 
@@ -68,9 +73,8 @@ export class ProjectService {
 			await this.projectRepository.delete(id);
 		} catch (error: unknown) {
 			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-				throw new AppError(409, 'Project cannot be deleted while it has tasks');
+				throw new AppError(409, 'No puedes eliminar un proyecto que todavía tiene tareas');
 			}
-
 			throw error;
 		}
 	}

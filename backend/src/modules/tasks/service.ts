@@ -53,6 +53,7 @@ export class TaskService {
 		try {
 			return await this.taskRepository.transaction(async (repository) => {
 				await this.ensureProjectExists(repository, input.projectId, creatorId, role);
+				await this.ensureProjectIsActive(repository, input.projectId);
 				await this.ensureUserExists(repository, input.assigneeId);
 				const task = await repository.create({ ...input, creatorId });
 				await repository.createStatusChange({
@@ -76,6 +77,7 @@ export class TaskService {
 				if (!task) {
 					throw new AppError(404, 'Task not found');
 				}
+				await this.ensureProjectIsActive(repository, task.projectId);
 
 				if (role === 'VIEWER' && Object.keys(input).some((field) => field !== 'notes' && field !== 'assigneeId')) {
 					throw new AppError(403, 'Viewers can only update task notes or assignee');
@@ -105,6 +107,7 @@ export class TaskService {
 			if (!visibleTask) {
 				throw new AppError(404, 'Task not found');
 			}
+			await this.ensureProjectIsActive(repository, visibleTask.projectId);
 
 			const currentTask = await repository.getCurrentStatus(id);
 			if (!currentTask) {
@@ -137,13 +140,14 @@ export class TaskService {
 		});
 	}
 
-	public async archive(id: string, userId: string, role: UserRole): Promise<void> {
-		const task = await this.findById(id, userId, role);
-		if (role === 'VIEWER' && task.creatorId !== userId) {
-			throw new AppError(403, 'Only the task creator can archive this task');
+	public async delete(id: string, userId: string, role: UserRole): Promise<void> {
+		if (role !== 'ADMIN') {
+			throw new AppError(403, 'Only administrators can delete tasks');
 		}
+
+		const task = await this.findById(id, userId, role);
 		try {
-			await this.taskRepository.archive(id);
+			await this.taskRepository.delete(task.id);
 		} catch (error: unknown) {
 			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
 				throw new AppError(404, 'Task not found');
@@ -163,6 +167,16 @@ export class TaskService {
 		const project = await repository.findProjectById(id, userId, role);
 		if (!project) {
 			throw new AppError(404, 'Project not found');
+		}
+	}
+
+	private async ensureProjectIsActive(repository: TaskRepository, id: string): Promise<void> {
+		const project = await repository.findProjectById(id);
+		if (!project) {
+			throw new AppError(404, 'Project not found');
+		}
+		if (project.status !== 'ACTIVE') {
+			throw new AppError(409, 'El proyecto está inactivo. Actívalo antes de modificar sus tareas');
 		}
 	}
 

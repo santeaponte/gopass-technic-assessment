@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 
 import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
-import { createProject, getProjects, updateProject, updateProjectStatus } from '../api';
+import { createProject, deleteProject, getProjects, updateProject, updateProjectStatus } from '../api';
 import { ProjectDetailModal } from '../components/ProjectDetailModal';
 import { ProjectForm } from '../components/ProjectForm';
 import { ProjectList } from '../components/ProjectList';
@@ -177,6 +177,16 @@ export function ProjectsPage() {
     }
   };
 
+  const handleDelete = async (project: Project): Promise<void> => {
+    try {
+      await deleteProject(project.id);
+      setProjects((currentProjects) => currentProjects.filter((item) => item.id !== project.id));
+      setSelectedProject(null);
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : 'No pudimos eliminar el proyecto.');
+    }
+  };
+
   const openCreateForm = () => {
     setEditingProject(null);
     setFormError('');
@@ -292,11 +302,12 @@ export function ProjectsPage() {
         <ProjectDetailModal
           project={selectedProject}
           canManage={isAdmin}
-          canCreateTask={Boolean(user)}
+          canCreateTask={Boolean(user && selectedProject.status === 'ACTIVE')}
           currentUserId={user?.id ?? ''}
           onClose={() => setSelectedProject(null)}
           onEdit={openEditForm}
           onStatusChange={handleModalStatusChange}
+          onDelete={handleDelete}
         />
       )}
     </main>

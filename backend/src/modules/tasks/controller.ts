@@ -58,14 +58,14 @@ export class TaskController {
 		response.status(200).json(await this.taskService.changeStatus(id, input, user.role, user.userId));
 	};
 
-	public archive = async (request: Request, response: Response): Promise<void> => {
+	public delete = async (request: Request, response: Response): Promise<void> => {
 		const { id } = taskIdSchema.parse(request.params);
 		const user = request.user;
 		if (!user) {
 			response.status(401).json({ error: 'Authentication required' });
 			return;
 		}
-		await this.taskService.archive(id, user.userId, user.role);
+		await this.taskService.delete(id, user.userId, user.role);
 		response.status(204).send();
 	};
 }

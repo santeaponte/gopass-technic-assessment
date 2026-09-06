@@ -60,7 +60,7 @@ export function changeTaskStatus(id: string, values: ChangeTaskStatusValues): Pr
   });
 }
 
-export function archiveTask(id: string): Promise<void> {
+export function deleteTask(id: string): Promise<void> {
   return apiRequest<void>(`/tasks/${id}`, {
     method: 'DELETE',
   });

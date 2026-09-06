@@ -1,4 +1,4 @@
-import type { Prisma, TaskPriority, TaskStatus, UserRole } from '@prisma/client';
+import type { Prisma, ProjectStatus, TaskPriority, TaskStatus, UserRole } from '@prisma/client';
 
 import { prisma } from '../../shared/prisma';
 
@@ -119,7 +119,7 @@ export class TaskRepository {
 		});
 	}
 
-	public findProjectById(id: string, userId?: string, role?: UserRole): Promise<{ id: string } | null> {
+	public findProjectById(id: string, userId?: string, role?: UserRole): Promise<{ id: string; status: ProjectStatus } | null> {
 		const where: Prisma.ProjectWhereInput = { id };
 
 		if (role === 'VIEWER' && userId) {
@@ -131,7 +131,7 @@ export class TaskRepository {
 			};
 		}
 
-		return this.database.project.findFirst({ where, select: { id: true } });
+		return this.database.project.findFirst({ where, select: { id: true, status: true } });
 	}
 
 	public findUserById(id: string): Promise<{ id: string } | null> {
@@ -150,8 +150,8 @@ export class TaskRepository {
 		return this.database.task.update({ where: { id }, data: { status }, select: taskSelect });
 	}
 
-	public archive(id: string): Promise<void> {
-		return this.database.task.update({ where: { id }, data: { archivedAt: new Date() }, select: { id: true } }).then(() => undefined);
+	public delete(id: string): Promise<void> {
+		return this.database.task.delete({ where: { id } }).then(() => undefined);
 	}
 
 	public createStatusChange(data: {

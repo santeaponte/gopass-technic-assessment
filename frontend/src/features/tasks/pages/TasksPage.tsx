@@ -6,7 +6,7 @@ import { ApiError } from '../../../lib/api/client';
 import { useAuth } from '../../auth/context/useAuth';
 import { getUsers } from '../../users/api';
 import { getProject, getProjects } from '../../projects/api';
-import { archiveTask, changeTaskStatus, createTask, getTasks, updateTask } from '../api';
+import { changeTaskStatus, createTask, deleteTask, getTasks, updateTask } from '../api';
 import { TaskForm } from '../components/TaskForm';
 import { TaskDetailModal } from '../components/TaskDetailModal';
 import { TaskList } from '../components/TaskList';
@@ -121,8 +121,7 @@ export function TasksPage() {
     if (projectId) {
       return;
     }
-
-    void getProjects().then(setAvailableProjects).catch((requestError: unknown) => {
+    void getProjects().then((projects) => setAvailableProjects(projects.filter((availableProject) => availableProject.status === 'ACTIVE'))).catch((requestError: unknown) => {
       console.error(requestError);
       setError('No pudimos cargar los proyectos para crear la tarea.');
     });
@@ -141,6 +140,10 @@ export function TasksPage() {
     const targetProjectId = projectId ?? selectedProjectId;
     if (!targetProjectId) {
       setTaskFormError('Selecciona un proyecto para crear la tarea.');
+      return;
+    }
+    if (!projectId && !availableProjects.some((availableProject) => availableProject.id === targetProjectId && availableProject.status === 'ACTIVE')) {
+      setTaskFormError('Solo puedes crear tareas en proyectos activos.');
       return;
     }
 
@@ -168,6 +171,10 @@ export function TasksPage() {
     if (!editingTask) {
       return;
     }
+    if (editingTask.project.status !== 'ACTIVE') {
+      setError('El proyecto está inactivo. Actívalo para modificar sus tareas.');
+      return;
+    }
 
     const notesOnly = !isAdmin;
     setIsSubmitting(true);
@@ -192,14 +199,18 @@ export function TasksPage() {
     }
   };
 
-  const handleArchive = async (task: Task): Promise<void> => {
-    if (!isAdmin || !window.confirm(`¿Archivar la tarea "${task.title}"?`)) {
+  const handleDelete = async (task: Task): Promise<void> => {
+    if (task.project.status !== 'ACTIVE') {
+      setError('El proyecto está inactivo. Actívalo para modificar sus tareas.');
+      return;
+    }
+    if (!isAdmin) {
       return;
     }
 
     setError('');
     try {
-      await archiveTask(task.id);
+      await deleteTask(task.id);
       setTasks((currentTasks) => currentTasks.filter((item) => item.id !== task.id));
     } catch (requestError) {
       console.error(requestError);
@@ -208,6 +219,10 @@ export function TasksPage() {
   };
 
   const handleChangeStatus = async (task: Task, status: TaskStatus): Promise<boolean> => {
+    if (task.project.status !== 'ACTIVE') {
+      setError('El proyecto está inactivo. Actívalo para modificar sus tareas.');
+      return false;
+    }
     const canChangeStatus = isAdmin || task.assignee?.id === user?.id;
     if (!canChangeStatus) {
       return false;
@@ -258,8 +273,8 @@ export function TasksPage() {
     }
   };
 
-  const handleModalArchive = async (task: Task): Promise<void> => {
-    await handleArchive(task);
+  const handleModalDelete = async (task: Task): Promise<void> => {
+    await handleDelete(task);
     setSelectedTask(null);
   };
 
@@ -391,7 +406,7 @@ export function TasksPage() {
           tasks={tasks}
           currentUserId={user?.id ?? ''}
           isAdmin={isAdmin}
-          canCreate={Boolean(projectId)}
+          canCreate={Boolean(projectId && project?.status === 'ACTIVE')}
           onCreate={() => {
             setEditingTask(null);
             setTaskFormError('');
@@ -413,7 +428,7 @@ export function TasksPage() {
           users={users}
           isSubmitting={isSubmitting}
           error={error}
-          onArchive={handleModalArchive}
+          onDelete={handleModalDelete}
           onChangeStatus={handleModalStatus}
           onStatusDenied={() => setIsStatusNoticeOpen(true)}
         />

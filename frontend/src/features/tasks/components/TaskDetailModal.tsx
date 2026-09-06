@@ -5,6 +5,7 @@ import type { TaskFormValues } from '../schemas';
 import { TaskForm } from './TaskForm';
 import { formatDate } from '../../../lib/date';
 import { DescriptionPreview } from '../../../components/DescriptionPreview';
+import { WarningModal } from '../../../components/WarningModal';
 
 type TaskDetailModalProps = {
   task: Task;
@@ -15,7 +16,7 @@ type TaskDetailModalProps = {
   isSubmitting: boolean;
   error: string;
   onEdit: (task: Task, values: TaskFormValues) => Promise<void>;
-  onArchive: (task: Task) => void;
+  onDelete: (task: Task) => void;
   onChangeStatus: (task: Task, status: TaskStatus) => void;
   onStatusDenied: () => void;
 };
@@ -44,14 +45,14 @@ export function TaskDetailModal({
   error,
   onClose,
   onEdit,
-  onArchive,
+  onDelete,
   onChangeStatus,
   onStatusDenied,
 }: TaskDetailModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteWarningOpen, setIsDeleteWarningOpen] = useState(false);
   const canChangeStatus = isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId;
-  const canArchive = isAdmin || task.creator?.id === currentUserId;
   const canEditNotes = isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId;
   const availableStatuses = editableStatuses;
 
@@ -163,12 +164,24 @@ export function TaskDetailModal({
               {isAdmin ? 'Editar' : 'Editar notas'}
             </button>
           )}
-          {canArchive && (
-            <button type="button" className="danger-button" onClick={() => onArchive(task)}>
-              Archivar
+          {isAdmin && (
+            <button type="button" className="danger-button" onClick={() => setIsDeleteWarningOpen(true)}>
+              Eliminar
             </button>
           )}
         </div>
+        {isDeleteWarningOpen && (
+          <WarningModal
+            title="¿Eliminar tarea?"
+            message={`La tarea "${task.title}" se eliminará permanentemente y no podrás recuperarla.`}
+            confirmLabel="Eliminar tarea"
+            onCancel={() => setIsDeleteWarningOpen(false)}
+            onConfirm={() => {
+              setIsDeleteWarningOpen(false);
+              onDelete(task);
+            }}
+          />
+        )}
       </div>
     </div>
     {isEditOpen && (

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { authenticate } from '../../middlewares/authenticate';
+import { authorize } from '../../middlewares/authorize';
 import { TaskController } from './controller';
 import { TaskRepository } from './repository';
 import { TaskService } from './service';
@@ -15,5 +16,5 @@ tasksRouter.get('/', authenticate, taskController.findAll);
 tasksRouter.get('/:id', authenticate, taskController.findById);
 tasksRouter.post('/', authenticate, taskController.create);
 tasksRouter.patch('/:id', authenticate, taskController.update);
-tasksRouter.delete('/:id', authenticate, taskController.archive);
+tasksRouter.delete('/:id', authenticate, authorize('ADMIN'), taskController.delete);
 tasksRouter.patch('/:id/status', authenticate, taskController.changeStatus);

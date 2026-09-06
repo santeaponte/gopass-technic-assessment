@@ -55,4 +55,5 @@ export class ProjectController {
 		await this.projectService.delete(id);
 		response.status(204).send();
 	};
+
 }
