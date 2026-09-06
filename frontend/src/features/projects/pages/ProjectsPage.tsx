@@ -7,6 +7,7 @@ import { ProjectDetailModal } from '../components/ProjectDetailModal';
 import { ProjectForm } from '../components/ProjectForm';
 import { ProjectList } from '../components/ProjectList';
 import type { Project, ProjectFormValues } from '../types';
+import { SortControl, type SortOption } from '../../../components/SortControl';
 
 const initialFormValues: ProjectFormValues = {
   name: '',
@@ -16,8 +17,18 @@ const initialFormValues: ProjectFormValues = {
   dueDate: '',
 };
 
-function sortProjectsByDueDate(projects: Project[]): Project[] {
+const priorityOrder: Record<Project['priority'], number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+
+function sortProjects(projects: Project[], sortOption: SortOption): Project[] {
   return [...projects].sort((first, second) => {
+    if (sortOption === 'priority') {
+      return priorityOrder[first.priority] - priorityOrder[second.priority];
+    }
+
+    if (sortOption === 'createdAt') {
+      return second.createdAt.localeCompare(first.createdAt);
+    }
+
     if (!first.dueDate) return 1;
     if (!second.dueDate) return -1;
     return first.dueDate.localeCompare(second.dueDate);
@@ -37,6 +48,7 @@ export function ProjectsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>('');
   const projectFormModalRef = useRef<HTMLDivElement>(null);
 
   const closeForm = () => {
@@ -66,7 +78,7 @@ export function ProjectsPage() {
     try {
       const nextProjects = await getProjects(term.trim());
       setError('');
-      setProjects(sortProjectsByDueDate(nextProjects));
+      setProjects(sortProjects(nextProjects, sortOption));
     } catch (requestError) {
       console.error(requestError);
       setError('No pudimos cargar los proyectos. Inténtalo de nuevo.');
@@ -74,7 +86,7 @@ export function ProjectsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sortOption]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -95,7 +107,7 @@ export function ProjectsPage() {
 
     try {
       const createdProject = await createProject(values);
-      setProjects((currentProjects) => sortProjectsByDueDate([createdProject, ...currentProjects]));
+      setProjects((currentProjects) => sortProjects([createdProject, ...currentProjects], sortOption));
       setIsFormOpen(false);
       setEditingProject(null);
     } catch (requestError) {
@@ -120,8 +132,9 @@ export function ProjectsPage() {
 
     try {
       const updatedProject = await updateProject(editingProject.id, values);
-      setProjects((currentProjects) => sortProjectsByDueDate(
+      setProjects((currentProjects) => sortProjects(
         currentProjects.map((project) => (project.id === updatedProject.id ? updatedProject : project)),
+        sortOption,
       ));
       setIsFormOpen(false);
       setEditingProject(null);
@@ -148,8 +161,9 @@ export function ProjectsPage() {
 
     try {
       const updatedProject = await updateProjectStatus(project.id, nextStatus);
-      setProjects((currentProjects) => sortProjectsByDueDate(
+      setProjects((currentProjects) => sortProjects(
         currentProjects.map((item) => (item.id === updatedProject.id ? updatedProject : item)),
+        sortOption,
       ));
       return updatedProject;
     } catch (requestError) {
@@ -192,11 +206,14 @@ export function ProjectsPage() {
           <p className="projects-intro">Elige un proyecto y continúa con lo que sigue.</p>
         </div>
 
-        {isAdmin && (
-          <button type="button" className="primary-button" onClick={openCreateForm}>
-            Nuevo proyecto
-          </button>
-        )}
+        <div className="page-header-actions">
+          <SortControl value={sortOption} onChange={setSortOption} />
+          {isAdmin && (
+            <button type="button" className="primary-button" onClick={openCreateForm}>
+              Nuevo proyecto
+            </button>
+          )}
+        </div>
       </section>
 
       <form className="projects-search" onSubmit={(event) => event.preventDefault()} noValidate>

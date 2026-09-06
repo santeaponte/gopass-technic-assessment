@@ -1,18 +1,10 @@
 import type { Project } from '../types';
 import { DescriptionPreview } from '../../../components/DescriptionPreview';
-import { formatDate } from '../../../lib/date';
+import { formatDate, getProjectDisplayStatus } from '../../../lib/date';
 
 type ProjectListProps = {
   projects: Project[];
   onOpen: (project: Project) => void;
-};
-
-const statusLabels: Record<Project['status'], string> = {
-  ACTIVE: 'Activo',
-  PAUSED: 'Inactivo',
-  IN_REVIEW: 'En revisión',
-  COMPLETED: 'Completado',
-  CANCELLED: 'Cancelado',
 };
 
 const priorityLabels: Record<Project['priority'], string> = {
@@ -31,12 +23,17 @@ export function ProjectList({ projects, onOpen }: ProjectListProps) {
       {projects.map((project) => (
         <li key={project.id} className="project-item">
           <button type="button" className="project-main" onClick={() => onOpen(project)}>
+            {(() => {
+              const displayStatus = getProjectDisplayStatus(project.status, project.dueDate);
+              return (
             <span className="project-header-row">
               <span className="project-title">{project.name}</span>
-              <span className={`project-status project-status-${project.status.toLowerCase()}`}>
-                {statusLabels[project.status]}
+              <span className={`project-status project-status-${displayStatus.className}`}>
+                {displayStatus.label}
               </span>
             </span>
+              );
+            })()}
 
             <DescriptionPreview description={project.description} title={project.name} className="project-description" />
 

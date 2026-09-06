@@ -10,6 +10,48 @@
   gap: 1rem;
 }
 
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.sort-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  border: 1px solid #b8c7ca;
+  border-radius: 7px;
+  padding: 0 0.7rem;
+  color: #607178;
+  background: #fff;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.sort-control-icon {
+  color: #df6b3f;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.sort-control select {
+  max-width: 11rem;
+  border: 0;
+  color: #19343a;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sort-control select:focus-visible {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
 .projects-kicker {
   margin: 0 0 0.5rem;
   color: #df6b3f;
@@ -194,6 +236,25 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.project-status-overdue,
+.project-status-due-soon {
+  color: #a23d32;
+  background: #fbe9e6;
+}
+
+.project-status-due-soon {
+  color: #9a6416;
+  background: #fff3d8;
+}
+
+.project-status-text-overdue {
+  color: #a23d32;
+}
+
+.project-status-text-due-soon {
+  color: #9a6416;
 }
 
 .project-status-active {

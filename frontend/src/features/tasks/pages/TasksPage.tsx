@@ -13,6 +13,7 @@ import { DescriptionPreview } from '../../../components/DescriptionPreview';
 import type { Task, TaskFormValues, TaskStatus } from '../types';
 import type { Project } from '../../projects/types';
 import type { PublicUser } from '../../auth/types';
+import { SortControl, type SortOption } from '../../../components/SortControl';
 
 const emptyTaskValues: TaskFormValues = {
   title: '',
@@ -34,8 +35,18 @@ function toFormValues(task: Task): TaskFormValues {
   };
 }
 
-function sortTasksByDueDate(tasks: Task[]): Task[] {
+const priorityOrder: Record<Task['priority'], number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+
+function sortTasks(tasks: Task[], sortOption: SortOption): Task[] {
   return [...tasks].sort((first, second) => {
+    if (sortOption === 'priority') {
+      return priorityOrder[first.priority] - priorityOrder[second.priority];
+    }
+
+    if (sortOption === 'createdAt') {
+      return second.createdAt.localeCompare(first.createdAt);
+    }
+
     if (!first.dueDate) return 1;
     if (!second.dueDate) return -1;
     return first.dueDate.localeCompare(second.dueDate);
@@ -61,11 +72,12 @@ export function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isStatusNoticeOpen, setIsStatusNoticeOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>('');
 
   const loadTasks = useCallback(async (term: string): Promise<void> => {
     try {
       const nextTasks = await getTasks(term.trim(), projectId);
-      setTasks(sortTasksByDueDate(nextTasks));
+      setTasks(sortTasks(nextTasks, sortOption));
       setError('');
     } catch (requestError) {
       console.error(requestError);
@@ -74,7 +86,7 @@ export function TasksPage() {
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, sortOption]);
 
   useEffect(() => {
     const loadProjectAndUsers = async (): Promise<void> => {
@@ -130,7 +142,7 @@ export function TasksPage() {
       if (!createdTask) {
         throw new Error('Task creation returned no task');
       }
-      setTasks((currentTasks) => sortTasksByDueDate([createdTask, ...currentTasks]));
+      setTasks((currentTasks) => sortTasks([createdTask, ...currentTasks], sortOption));
       setIsFormOpen(false);
       setEditingTask(null);
     } catch (requestError) {
@@ -155,8 +167,9 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
-      setTasks((currentTasks) => sortTasksByDueDate(
+      setTasks((currentTasks) => sortTasks(
         currentTasks.map((task) => task.id === updatedTask.id ? updatedTask : task),
+        sortOption,
       ));
       setIsFormOpen(false);
       setEditingTask(null);
@@ -195,8 +208,9 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task status update returned no task');
       }
-      setTasks((currentTasks) => sortTasksByDueDate(
+      setTasks((currentTasks) => sortTasks(
         currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item),
+        sortOption,
       ));
       return true;
     } catch (requestError) {
@@ -219,8 +233,9 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
-      setTasks((currentTasks) => sortTasksByDueDate(
+      setTasks((currentTasks) => sortTasks(
         currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item),
+        sortOption,
       ));
       setSelectedTask(updatedTask);
     } catch (requestError) {
@@ -285,21 +300,24 @@ export function TasksPage() {
             <DescriptionPreview description={project.description} title={project.name} className="tasks-project-description" />
           )}
         </div>
-        {!projectId && (
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() => {
-              setSelectedProjectId('');
-              setEditingTask(null);
-              setError('');
-              setTaskFormError('');
-              setIsFormOpen(true);
-            }}
-          >
-            Nueva tarea
-          </button>
-        )}
+        <div className="page-header-actions">
+          <SortControl value={sortOption} onChange={setSortOption} />
+          {!projectId && (
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => {
+                setSelectedProjectId('');
+                setEditingTask(null);
+                setError('');
+                setTaskFormError('');
+                setIsFormOpen(true);
+              }}
+            >
+              Nueva tarea
+            </button>
+          )}
+        </div>
       </section>
 
       <form className="tasks-search" onSubmit={(event) => event.preventDefault()} noValidate>

@@ -385,6 +385,14 @@
     align-items: stretch;
   }
 
+  .page-header-actions {
+    justify-content: stretch;
+  }
+
+  .page-header-actions > * {
+    flex: 1;
+  }
+
   .task-board {
     grid-template-columns: repeat(4, minmax(16rem, 1fr));
   }

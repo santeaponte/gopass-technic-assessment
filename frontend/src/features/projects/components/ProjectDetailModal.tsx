@@ -8,7 +8,7 @@ import { getUsers } from '../../users/api';
 import type { PublicUser } from '../../auth/types';
 import type { Project } from '../types';
 import { DescriptionPreview } from '../../../components/DescriptionPreview';
-import { formatDate } from '../../../lib/date';
+import { formatDate, getProjectDisplayStatus } from '../../../lib/date';
 
 type ProjectDetailModalProps = {
   project: Project;
@@ -33,14 +33,6 @@ const priorityLabels: Record<Project['priority'], string> = {
   HIGH: 'Alta',
 };
 
-const projectStatusLabels: Record<Project['status'], string> = {
-  ACTIVE: 'Activo',
-  PAUSED: 'Inactivo',
-  IN_REVIEW: 'En revisión',
-  COMPLETED: 'Completado',
-  CANCELLED: 'Cancelado',
-};
-
 export function ProjectDetailModal({
   project,
   canManage,
@@ -61,6 +53,7 @@ export function ProjectDetailModal({
   const [isStatusWarningOpen, setIsStatusWarningOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isTaskEditFormOpen, setIsTaskEditFormOpen] = useState(false);
+  const displayStatus = getProjectDisplayStatus(project.status, project.dueDate, tasks.map((task) => task.status));
 
   useEffect(() => {
     const loadTasks = async (): Promise<void> => {
@@ -244,7 +237,7 @@ export function ProjectDetailModal({
           <dl className="project-modal-meta">
             <div>
               <dt>Estado</dt>
-              <dd>{projectStatusLabels[project.status]}</dd>
+              <dd className={`project-status-text project-status-text-${displayStatus.className}`}>{displayStatus.label}</dd>
             </div>
             <div>
               <dt>Prioridad</dt>
