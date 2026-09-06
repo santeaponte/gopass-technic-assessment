@@ -2,8 +2,13 @@
 
 [![CI](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml)
 
-Aplicación full stack para gestionar proyectos y tareas con autenticación,
-roles, estados, prioridades, historial y notas.
+Aplicación full stack para gestionar proyectos y tareas.
+
+## Demo
+
+- **Aplicación:** https://gopass-technic-assessment-frontend.vercel.app/
+- **Usuario ADMIN:** `admin@gopass.com`
+- **Contraseña:** `Admin1234`
 
 ## Alcance de la prueba técnica
 
@@ -94,8 +99,8 @@ Si `ADMIN_EMAIL` o `ADMIN_PASSWORD` no están definidas, el seed no hace nada.
 **Con Docker Compose:**
 
 ```bash
-export ADMIN_EMAIL="admin@example.com"
-export ADMIN_PASSWORD="Qwerty12"
+export ADMIN_EMAIL="admin@gopass.com"
+export ADMIN_PASSWORD="Admin1234"
 docker compose up --build -d
 docker compose exec -e ADMIN_EMAIL -e ADMIN_PASSWORD -e ADMIN_NAME backend npm run prisma:seed
 ```
