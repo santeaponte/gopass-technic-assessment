@@ -16,7 +16,6 @@ export const taskSearchSchema = z.object({
 export const createTaskSchema = z.object({
 	title: z.string().trim().min(1).max(200),
 	description: z.string().trim().nullable().optional(),
-	notes: z.string().trim().max(5000).nullable().optional(),
 	priority: taskPrioritySchema.optional(),
 	projectId: z.string().uuid(),
 	dueDate: dateSchema.nullable().optional(),
@@ -26,7 +25,6 @@ export const createTaskSchema = z.object({
 export const updateTaskSchema = z.object({
 	title: z.string().trim().min(1).max(200).optional(),
 	description: z.string().trim().nullable().optional(),
-	notes: z.string().trim().max(5000).nullable().optional(),
 	priority: taskPrioritySchema.optional(),
 	projectId: z.string().uuid().optional(),
 	creatorId: z.string().uuid().optional(),

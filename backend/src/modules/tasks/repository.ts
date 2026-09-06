@@ -28,7 +28,6 @@ const taskSelect = {
 	description: true,
 	status: true,
 	priority: true,
-	notes: true,
 	projectId: true,
 	creatorId: true,
 	project: { select: projectSelect },
@@ -57,7 +56,6 @@ export type TaskRecord = Prisma.TaskGetPayload<{ select: typeof taskSelect }>;
 export type CreateTaskData = {
 	title: string;
 	description?: string | null;
-	notes?: string | null;
 	priority?: TaskPriority;
 	projectId: string;
 	creatorId: string;

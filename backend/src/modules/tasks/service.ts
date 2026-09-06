@@ -79,8 +79,8 @@ export class TaskService {
 				}
 				await this.ensureProjectIsActive(repository, task.projectId);
 
-				if (role === 'VIEWER' && Object.keys(input).some((field) => field !== 'notes' && field !== 'assigneeId')) {
-					throw new AppError(403, 'Viewers can only update task notes or assignee');
+				if (role === 'VIEWER' && Object.keys(input).some((field) => field !== 'assigneeId')) {
+					throw new AppError(403, 'Viewers can only update task assignee');
 				}
 
 				if (input.projectId) {
