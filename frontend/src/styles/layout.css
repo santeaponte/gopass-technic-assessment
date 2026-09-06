@@ -154,7 +154,7 @@
 
 .app-page {
   width: min(72rem, 100%);
-  min-height: 100svh;
+  min-height: 10svh;
   margin: 0 auto;
   padding: 1.5rem 2rem 3rem;
 }
