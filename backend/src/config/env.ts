@@ -9,6 +9,9 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().min(1),
   PORT: z.coerce.number().int().positive().default(4000),
   CORS_ORIGIN: z.string().min(1),
+  ADMIN_EMAIL: z.string().email().optional(),
+  ADMIN_PASSWORD: z.string().min(8).optional(),
+  ADMIN_NAME: z.string().min(1).default('Admin'),
 });
 
 const parsed = envSchema.safeParse(process.env);
