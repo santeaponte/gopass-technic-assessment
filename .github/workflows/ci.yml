@@ -48,6 +48,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npm run prisma:generate
+
       - name: Create and migrate test database
         working-directory: backend
         run: npm run test:db:setup
