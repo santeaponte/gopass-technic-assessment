@@ -13,4 +13,5 @@ const userController = new UserController(userService);
 export const usersRouter = Router();
 
 usersRouter.get('/', authenticate, authorize('ADMIN'), userController.findAll);
+usersRouter.post('/', authenticate, authorize('ADMIN'), userController.createViewer);
 usersRouter.get('/:id', authenticate, userController.findById);

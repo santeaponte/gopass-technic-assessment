@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { ApiError } from '../../../lib/api/client';
 import { createTask, getTasks, updateTask } from '../../tasks/api';
@@ -42,6 +43,7 @@ export function ProjectDetailModal({
   onEdit,
   onStatusChange,
 }: ProjectDetailModalProps) {
+  const navigate = useNavigate();
   const modalRef = useRef<HTMLDivElement>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -199,11 +201,11 @@ export function ProjectDetailModal({
                   className="project-task-item"
                   tabIndex={0}
                   role="button"
-                  onClick={() => setSelectedTask(task)}
+                  onClick={() => navigate(`/projects/${encodeURIComponent(project.id)}/tasks`)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      setSelectedTask(task);
+                      navigate(`/projects/${encodeURIComponent(project.id)}/tasks`);
                     }
                   }}
                 >

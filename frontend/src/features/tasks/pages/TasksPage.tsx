@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 import { ApiError } from '../../../lib/api/client';
 import { useAuth } from '../../auth/context/useAuth';
@@ -9,7 +10,6 @@ import { archiveTask, changeTaskStatus, createTask, getTasks, updateTask } from 
 import { TaskForm } from '../components/TaskForm';
 import { TaskDetailModal } from '../components/TaskDetailModal';
 import { TaskList } from '../components/TaskList';
-import { DescriptionPreview } from '../../../components/DescriptionPreview';
 import type { Task, TaskFormValues, TaskStatus } from '../types';
 import type { Project } from '../../projects/types';
 import type { PublicUser } from '../../auth/types';
@@ -37,8 +37,16 @@ function toFormValues(task: Task): TaskFormValues {
 
 const priorityOrder: Record<Task['priority'], number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
 
-function sortTasks(tasks: Task[], sortOption: SortOption): Task[] {
+function sortTasks(tasks: Task[], sortOption: SortOption, selectedProjectId?: string): Task[] {
   return [...tasks].sort((first, second) => {
+    if (sortOption === 'project' && selectedProjectId) {
+      const firstMatches = first.projectId === selectedProjectId;
+      const secondMatches = second.projectId === selectedProjectId;
+      if (firstMatches !== secondMatches) {
+        return firstMatches ? -1 : 1;
+      }
+    }
+
     if (sortOption === 'priority') {
       return priorityOrder[first.priority] - priorityOrder[second.priority];
     }
@@ -55,6 +63,9 @@ function sortTasks(tasks: Task[], sortOption: SortOption): Task[] {
 
 export function TasksPage() {
   const { projectId } = useParams<{ projectId: string }>();
+  const [searchParams] = useSearchParams();
+  const projectSortId = searchParams.get('projectId') ?? undefined;
+  const initialSortOption = searchParams.get('sort') === 'project' && projectSortId ? 'project' : '';
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -72,12 +83,12 @@ export function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isStatusNoticeOpen, setIsStatusNoticeOpen] = useState(false);
-  const [sortOption, setSortOption] = useState<SortOption>('');
+  const [sortOption, setSortOption] = useState<SortOption>(initialSortOption);
 
   const loadTasks = useCallback(async (term: string): Promise<void> => {
     try {
       const nextTasks = await getTasks(term.trim(), projectId);
-      setTasks(sortTasks(nextTasks, sortOption));
+      setTasks(sortTasks(nextTasks, sortOption, projectSortId));
       setError('');
     } catch (requestError) {
       console.error(requestError);
@@ -86,7 +97,7 @@ export function TasksPage() {
     } finally {
       setLoading(false);
     }
-  }, [projectId, sortOption]);
+  }, [projectId, projectSortId, sortOption]);
 
   useEffect(() => {
     const loadProjectAndUsers = async (): Promise<void> => {
@@ -292,13 +303,10 @@ export function TasksPage() {
       <section className="tasks-header">
         <div>
           <p className="tasks-kicker">Tareas</p>
-          <h1>{project?.name ?? 'Tus pendientes'}</h1>
+          <h1>{projectId && project ? `Proyecto: ${project.name}` : 'Tus pendientes'}</h1>
           <p className="tasks-intro">
             Organiza el trabajo, sigue el progreso y mantén todo en marcha.
           </p>
-          {project?.description && (
-            <DescriptionPreview description={project.description} title={project.name} className="tasks-project-description" />
-          )}
         </div>
         <div className="page-header-actions">
           <SortControl value={sortOption} onChange={setSortOption} />
@@ -335,25 +343,7 @@ export function TasksPage() {
 
       {error && <p className="form-error" role="alert">{error}</p>}
 
-      {isFormOpen && projectId && (
-        <section className="task-panel">
-          <h2>{editingTask ? 'Editar tarea' : 'Nueva tarea'}</h2>
-          <TaskForm
-            key={editingTask ? editingTask.id : 'new-task'}
-            initialValues={editingTask ? toFormValues(editingTask) : emptyTaskValues}
-            users={users}
-            submitLabel={editingTask ? 'Guardar cambios' : 'Crear tarea'}
-            onSubmit={editingTask ? handleEdit : handleCreate}
-            onCancel={closeForm}
-            isSubmitting={isSubmitting}
-            projects={!editingTask && !projectId ? availableProjects : undefined}
-            selectedProjectId={!editingTask && !projectId ? selectedProjectId : undefined}
-            onProjectChange={!editingTask && !projectId ? setSelectedProjectId : undefined}
-             notesOnly={Boolean(editingTask) && !isAdmin}
-          />
-        </section>
-      )}
-      {isFormOpen && !projectId && (
+      {isFormOpen && (
         <div
           className="task-create-modal-backdrop"
           role="presentation"
@@ -373,19 +363,20 @@ export function TasksPage() {
             <button type="button" className="project-modal-close" onClick={closeForm} aria-label="Cerrar formulario de tarea">
               ×
             </button>
-            <h2 id="task-create-title">Nueva tarea</h2>
+            <h2 id="task-create-title">{editingTask ? 'Editar tarea' : 'Nueva tarea'}</h2>
             {taskFormError && <p className="form-error" role="alert">{taskFormError}</p>}
             <TaskForm
-              key="new-task"
-              initialValues={emptyTaskValues}
+              key={editingTask ? editingTask.id : 'new-task'}
+              initialValues={editingTask ? toFormValues(editingTask) : emptyTaskValues}
               users={users}
-              projects={availableProjects}
-              selectedProjectId={selectedProjectId}
-              onProjectChange={setSelectedProjectId}
-              submitLabel="Crear tarea"
-              onSubmit={handleCreate}
+              projects={!editingTask && !projectId ? availableProjects : undefined}
+              selectedProjectId={!editingTask && !projectId ? selectedProjectId : undefined}
+              onProjectChange={!editingTask && !projectId ? setSelectedProjectId : undefined}
+              submitLabel={editingTask ? 'Guardar cambios' : 'Crear tarea'}
+              onSubmit={editingTask ? handleEdit : handleCreate}
               onCancel={closeForm}
               isSubmitting={isSubmitting}
+              notesOnly={Boolean(editingTask) && !isAdmin}
             />
           </div>
         </div>
@@ -401,7 +392,11 @@ export function TasksPage() {
           currentUserId={user?.id ?? ''}
           isAdmin={isAdmin}
           canCreate={Boolean(projectId)}
-          onCreate={() => { setEditingTask(null); setIsFormOpen(true); }}
+          onCreate={() => {
+            setEditingTask(null);
+            setTaskFormError('');
+            setIsFormOpen(true);
+          }}
           onOpen={setSelectedTask}
           onChangeStatus={handleChangeStatus}
           onStatusDenied={() => setIsStatusNoticeOpen(true)}

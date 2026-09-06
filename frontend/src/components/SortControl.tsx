@@ -1,6 +1,6 @@
-export type SortOption = '' | 'dueDate' | 'priority' | 'createdAt';
+export type SortOption = '' | 'dueDate' | 'priority' | 'createdAt' | 'project';
 
-const sortOptions: SortOption[] = ['', 'dueDate', 'priority', 'createdAt'];
+const sortOptions: SortOption[] = ['', 'dueDate', 'priority', 'createdAt', 'project'];
 
 function isSortOption(value: string): value is SortOption {
   return sortOptions.includes(value as SortOption);
@@ -30,6 +30,7 @@ export function SortControl({ value, onChange, label = 'Ordenar por' }: SortCont
         <option value="dueDate">Entrega más próxima</option>
         <option value="priority">Prioridad más alta</option>
         <option value="createdAt">Más recientes</option>
+        <option value="project">Proyecto</option>
       </select>
     </label>
   );
