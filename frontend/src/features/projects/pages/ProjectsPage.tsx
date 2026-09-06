@@ -184,7 +184,7 @@ export function ProjectsPage() {
   };
 
   return (
-    <main className="projects-page">
+    <main className="app-page projects-page">
       <section className="projects-header">
         <div>
           <p className="projects-kicker">Proyectos</p>
@@ -200,13 +200,16 @@ export function ProjectsPage() {
       </section>
 
       <form className="projects-search" onSubmit={(event) => event.preventDefault()} noValidate>
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar proyectos"
-          aria-label="Buscar proyectos"
-        />
+        <label className="search-field">
+          <span className="search-icon" aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar proyectos"
+            aria-label="Buscar proyectos"
+          />
+        </label>
       </form>
 
       {error && <p className="form-error" role="alert">{error}</p>}
@@ -264,6 +267,7 @@ export function ProjectsPage() {
         <ProjectDetailModal
           project={selectedProject}
           canManage={isAdmin}
+          canCreateTask={Boolean(user)}
           onClose={() => setSelectedProject(null)}
           onEdit={openEditForm}
           onStatusChange={handleModalStatusChange}

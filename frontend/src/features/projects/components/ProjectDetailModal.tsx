@@ -11,6 +11,7 @@ import type { Project } from '../types';
 type ProjectDetailModalProps = {
   project: Project;
   canManage: boolean;
+  canCreateTask: boolean;
   onClose: () => void;
   onEdit: (project: Project) => void;
   onStatusChange: (project: Project) => void;
@@ -45,6 +46,7 @@ function formatDate(date: string): string {
 export function ProjectDetailModal({
   project,
   canManage,
+  canCreateTask,
   onClose,
   onEdit,
   onStatusChange,
@@ -160,7 +162,7 @@ export function ProjectDetailModal({
               ))}
             </ul>
           )}
-          {canManage && (
+          {canCreateTask && (
             <button type="button" className="project-create-task-button" onClick={() => { setTaskError(''); setIsTaskFormOpen(true); }}>
               + Agregar tarea
             </button>

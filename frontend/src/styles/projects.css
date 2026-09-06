@@ -1,8 +1,4 @@
 .projects-page {
-  width: min(72rem, 100%);
-  min-height: 100svh;
-  margin: 0 auto;
-  padding: 3rem 2rem;
   display: grid;
   gap: 1.5rem;
 }
@@ -42,12 +38,34 @@
   align-items: center;
 }
 
+.search-field {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-height: 2.9rem;
+  border: 2px solid #b8c7ca;
+  border-radius: 8px;
+  padding: 0 0.85rem;
+  background: #fff;
+}
+
+.search-icon {
+  color: #607178;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.search-field:focus-within {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
 .projects-search input {
   flex: 1;
   min-height: 2.75rem;
-  padding: 0.8rem 0.9rem;
-  border: 1px solid #b8c7ca;
-  border-radius: 7px;
+  border: 0;
+  padding: 0.8rem 0.65rem;
+  outline: 0;
   background: #fff;
   color: #19343a;
   font: inherit;
