@@ -2,8 +2,7 @@
 
 [![CI](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml)
 
-Aplicacion full stack para gestionar proyectos y tareas, con autenticacion,
-roles, auditoria de cambios de estado y notas por tarea.
+Aplicacion full stack para gestionar proyectos y tareas.
 
 ## Demo
 
