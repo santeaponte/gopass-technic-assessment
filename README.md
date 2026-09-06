@@ -2,169 +2,221 @@
 
 [![CI](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml)
 
-Aplicación full stack para gestionar proyectos y tareas.
+Aplicacion full stack para gestionar proyectos y tareas, con autenticacion,
+roles, auditoria de cambios de estado y notas por tarea.
 
 ## Demo
 
-- **Aplicación:** https://gopass-technic-assessment-frontend.vercel.app/
-- **Usuario ADMIN:** `admin@gopass.com`
-- **Contraseña:** `Admin1234`
+![Pantalla de login](assets/login.jpeg)
 
-## Alcance de la prueba técnica
+- **Aplicacion:** https://gopass-technic-assessment-frontend.vercel.app/
 
-Esta solución implementa una aplicación de gestión de tareas organizada por
-proyectos. Permite:
+Las credenciales de acceso al entorno demo se enviaran por correo al evaluador.
 
-- Autenticar usuarios y aplicar permisos por rol (`ADMIN` y `VIEWER`).
-- Crear, consultar, actualizar y eliminar proyectos.
-- Asociar tareas a proyectos activos.
-- Gestionar estados, prioridades y asignaciones.
-- Registrar historial de cambios de estado.
-- Crear y consultar notas de tareas.
-- Persistir la información en PostgreSQL mediante Prisma.
+## Funcionalidades
 
-El frontend React consume la API REST del backend Express y presenta los
-proyectos y sus tareas de forma interactiva.
+- Registro e inicio de sesion con JWT y contraseñas protegidas con bcrypt.
+- Gestion de proyectos y tareas organizadas por proyecto.
+- Estados, prioridades, fechas y asignacion de tareas.
+- Historial de cambios de estado con usuario, fecha y comentario opcional.
+- Notas asociadas a tareas.
+- Autorizacion diferenciada para `ADMIN` y `VIEWER`.
+- Interfaz React desplegada en Vercel y API REST desplegada en Render.
 
-## Stack y arquitectura
+## Stack
 
-- **Frontend:** React 18, TypeScript, Vite.
-- **Backend:** Node.js, Express, TypeScript.
-- **Persistencia:** PostgreSQL y Prisma.
-- **Validación:** schemas Zod.
-- **Testing:** Vitest, Supertest e integración con PostgreSQL.
-- **CI:** GitHub Actions para tests, build y lint.
+| Capa          | Tecnologia                     |
+| ------------- | ------------------------------ |
+| Frontend      | React 18, TypeScript, Vite     |
+| Backend       | Node.js, Express 5, TypeScript |
+| Validacion    | Zod                            |
+| Persistencia  | PostgreSQL, Prisma             |
+| Autenticacion | JWT, bcrypt                    |
+| Testing       | Vitest, Supertest, PostgreSQL  |
+| CI            | GitHub Actions                 |
+| Despliegue    | Vercel, Render, Supabase       |
 
-El backend está organizado por módulos de dominio (`auth`, `users`,
-`projects` y `tasks`). Cada módulo separa rutas, controllers, services,
-repositories y schemas. La aplicación Express se exporta separada del
-listener HTTP para facilitar las pruebas de integración.
+## Arquitectura
 
-## Recursos de entrega
+El backend es un monolito modular organizado por dominio:
 
-- **Aplicación:** disponible localmente mediante Docker Compose.
-- **API:** `http://localhost:4000`.
-- **Frontend:** `http://localhost:8080`.
-- **Documentación API:** `http://localhost:4000/api-docs`.
-- **Repositorio:** código fuente, migraciones, tests y workflow CI incluidos.
+```text
+HTTP Route
+  -> Controller
+  -> Service
+  -> Repository
+  -> Prisma / PostgreSQL
+```
 
-La ejecución reproducible está documentada en este README. La validación
-automática se ejecuta mediante GitHub Actions en cada `push` y
-`pull_request`.
+- **Routes y middleware:** autenticacion, autorizacion y validacion HTTP.
+- **Controller:** adapta request/response y no contiene reglas de negocio.
+- **Service:** aplica reglas de negocio, autorizacion contextual y transiciones de
+  estado.
+- **Repository:** unica capa que accede a Prisma y PostgreSQL.
+- La instancia de Express (`app`) esta separada del listener HTTP para facilitar
+  las pruebas de integracion.
+- El rol y el usuario autenticados provienen del JWT, no del body enviado por
+  el cliente.
 
-## Ejecutar todo con Docker
+### Arquitectura de despliegue
 
-Requiere Docker Desktop con Compose habilitado:
+```text
+Usuario
+  |
+Vercel - Frontend React
+  | HTTPS / REST
+Render - Backend Express
+  | Prisma
+Supabase - PostgreSQL
+```
+
+El frontend nunca accede directamente a PostgreSQL. La API centraliza la
+autenticacion, autorizacion, validacion y reglas de negocio.
+
+## Roles
+
+| Rol      | Capacidades principales                                                                                                         |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `ADMIN`  | Gestion completa de proyectos, usuarios y tareas, incluyendo asignaciones, cambios de estado y eliminacion.                     |
+| `VIEWER` | Consulta de proyectos y tareas visibles, autoasignacion, notas y cambios de estado sobre tareas creadas o asignadas al usuario. |
+
+El registro publico crea usuarios `VIEWER`. Los usuarios `ADMIN` se crean
+mediante el seed configurado por variables de entorno.
+
+## Modelo de datos
+
+- `User`: identidad, credenciales, rol y estado de activacion.
+- `Project`: proyecto, propietario, estado, prioridad y fechas.
+- `Task`: tarea, proyecto, creador, asignado, prioridad, estado y fechas.
+- `TaskStatusChange`: historial auditable de transiciones de estado.
+- `TaskNote`: notas con autor y timestamps.
+
+Relaciones principales:
+
+```text
+User 1---N Project        (owner)
+Project 1---N Task
+User 1---N Task            (creator)
+User 1---N Task            (assignee, optional)
+Task 1---N TaskStatusChange
+User 1---N TaskStatusChange (changedBy)
+Task 1---N TaskNote
+User 1---N TaskNote         (author)
+```
+
+## Decisiones tecnicas
+
+- **Monolito modular en lugar de microservicios:** el alcance no requiere
+  despliegues independientes y esta estructura mantiene separadas las
+  responsabilidades.
+- **Autorizacion en backend:** las protecciones de rutas del frontend solo
+  controlan la experiencia; la seguridad real se aplica con JWT y middleware.
+- **Auditoria de estados:** el historial se persiste como entidad propia para
+  conservar quien hizo cada cambio, cuando y con que comentario.
+- **Asignacion 1:N:** cada tarea tiene un unico responsable opcional. Una
+  relacion N:N seria una evolucion posible si el negocio requiere varios.
+- **PostgreSQL real en integracion:** permite validar transacciones, relaciones
+  y restricciones que los mocks no cubren.
+
+## Ejecucion local
+
+### Requisitos
+
+- Node.js 20 o superior.
+- Docker Desktop con Docker Compose.
+
+### Docker Compose
 
 ```bash
 docker compose up --build
 ```
 
-La aplicación queda disponible en `http://localhost:8080`, la API en
-`http://localhost:4000` y Swagger en `http://localhost:4000/api-docs`.
+Servicios:
 
-Las migraciones de Prisma se ejecutan automáticamente al iniciar el backend.
+- Frontend: http://localhost:8080
+- API: http://localhost:4000
+- Documentacion Swagger: http://localhost:4000/api-docs
+
 Para detener los servicios:
 
 ```bash
 docker compose down
 ```
 
-Para eliminar también los datos locales de PostgreSQL:
+Para eliminar tambien los datos locales:
 
 ```bash
 docker compose down -v
 ```
 
-Puedes definir `JWT_SECRET`, `JWT_EXPIRES_IN`, `CORS_ORIGIN` y `VITE_API_URL`
-antes de ejecutar Compose si necesitas cambiar los valores por defecto.
+### Seed del administrador
 
-## Usuario administrador inicial
-
-El primer usuario `ADMIN` se crea con un seed de Prisma (`backend/prisma/seed.ts`),
-no insertando filas a mano en la base de datos. El script es idempotente: si el
-email ya existe, no lo modifica.
-
-Definí estas variables (en `backend/.env` para desarrollo local, o como
-variables de entorno antes de levantar Compose):
+El seed de Prisma es idempotente y usa estas variables:
 
 ```bash
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD="cambia-esto-min-8-caracteres"
-ADMIN_NAME="Admin"        # opcional, default "Admin"
+ADMIN_NAME="Admin"
 ```
 
-Si `ADMIN_EMAIL` o `ADMIN_PASSWORD` no están definidas, el seed no hace nada.
+Los valores son ejemplos para desarrollo local. Si no se definen `ADMIN_EMAIL`
+o `ADMIN_PASSWORD`, el seed no crea ningun administrador.
 
-**Con Docker Compose:**
+## Variables de entorno
+
+Backend:
 
 ```bash
-export ADMIN_EMAIL="admin@gopass.com"
-export ADMIN_PASSWORD="Admin1234"
-docker compose up --build -d
-docker compose exec -e ADMIN_EMAIL -e ADMIN_PASSWORD -e ADMIN_NAME backend npm run prisma:seed
+DATABASE_URL=postgresql://...
+JWT_SECRET=...
+JWT_EXPIRES_IN=1d
+CORS_ORIGIN=http://localhost:8080
+ADMIN_EMAIL=...
+ADMIN_PASSWORD=...
+ADMIN_NAME=Admin
 ```
 
-**En desarrollo local (sin Docker):**
+Frontend:
 
 ```bash
-cd backend
-npm install
-npx prisma migrate deploy
-npm run prisma:seed
+VITE_API_URL=http://localhost:4000
 ```
+
+`prisma.config.ts` utiliza `DATABASE_URL` como unica conexion configurada para
+Prisma.
+
+## API
+
+La especificacion OpenAPI esta disponible en `/api-docs`.
+
+| Recurso     | Operaciones principales                           |
+| ----------- | ------------------------------------------------- |
+| `/auth`     | Registro e inicio de sesion                       |
+| `/users`    | Consulta y gestion administrativa de usuarios     |
+| `/projects` | Listado, creacion, actualizacion y eliminacion    |
+| `/tasks`    | Listado, creacion, actualizacion, estados y notas |
+| `/health`   | Health check de la API                            |
+
+Las operaciones protegidas requieren un token Bearer. Los permisos dependen del
+rol y de las reglas del recurso.
 
 ## Testing y calidad
 
-El backend usa Vitest para los tests unitarios y de integración HTTP. La suite
-incluye schemas, servicios, rutas Express reales y persistencia mediante Prisma
-contra PostgreSQL.
+La suite se divide en:
 
-### Requisitos
+1. **Schemas:** validacion de payloads, UUID, fechas y enums.
+2. **Unit tests:** servicios con repositories mockeados.
+3. **Integration tests:** Express, middleware, servicios, repositories, Prisma y
+   PostgreSQL real.
 
-- Node.js 20 o superior.
-- Docker Desktop con Compose habilitado.
-- Dependencias instaladas desde la raíz:
-
-```bash
-npm install
-```
-
-### Base de datos de testing
-
-Los tests de integración usan una base separada llamada `gopass_test`; nunca
-deben ejecutarse contra la base de desarrollo `gopass`.
-
-Inicia únicamente PostgreSQL con Docker Compose:
-
-```bash
-docker compose up -d postgres
-```
-
-Crea la configuración local de testing a partir de la plantilla:
-
-```bash
-cd backend
-cp .env.test.example .env.test
-```
-
-El archivo `.env.test` es local y está ignorado por Git. Su valor por defecto
-apunta al PostgreSQL expuesto por Docker en `localhost:5435`.
-
-Prepara la base y aplica las migraciones existentes:
-
-```bash
-npm run test:db:setup
-```
-
-Este comando crea `gopass_test` si todavía no existe y ejecuta las migraciones
-de Prisma sin modificar la base `gopass`.
-
-### Ejecutar las validaciones
+Los tests de integracion usan la base aislada `gopass_test`, nunca la base de
+desarrollo.
 
 Desde `backend/`:
 
 ```bash
+npm install
+npm run test:db:setup
 npm run test:unit
 npm run test:integration
 npm test
@@ -172,47 +224,47 @@ npm run build
 npm run lint
 ```
 
-`npm run test:unit` ejecuta únicamente schemas y servicios, sin cargar la
-configuración de integración ni requerir PostgreSQL. `npm run test:integration`
-ejecuta únicamente las pruebas HTTP y de persistencia real, usando
-`gopass_test`.
+Los comandos `test:unit` y `test:integration` ejecutan cada grupo de forma
+explícita; `npm test` conserva la configuración general de Vitest para los tests
+unitarios.
 
-`npm test` conserva la ejecución completa de ambas categorías. La suite de
-integración limpia las tablas de testing entre casos y se ejecuta sin
-paralelismo entre archivos porque comparte exclusivamente `gopass_test`. El
-test de base de datos valida explícitamente un flujo real de `INSERT` y
-`SELECT`.
-
-Para validar también el frontend, desde `frontend/`:
+Desde `frontend/`:
 
 ```bash
-npm run lint
+npm install
 npm run build
+npm run lint
 ```
 
-### Cobertura
-
-La cobertura se puede consultar localmente con:
+La cobertura se puede consultar con:
 
 ```bash
 cd backend
 npx vitest run --coverage
 ```
 
-La métrica debe interpretarse junto con el alcance de los tests: los módulos
-principales priorizados incluyen Auth, Projects y Tasks, además de sus flujos
-HTTP y persistencia. Las áreas con cobertura menor quedan identificadas como
-trabajo pendiente, en lugar de añadir tests artificiales solo para elevar el
-porcentaje.
+La cobertura se interpreta junto con el alcance de las pruebas; no se agregan
+casos artificiales solo para aumentar un porcentaje.
 
-## Integración continua
+## Integracion continua
 
-El workflow de GitHub Actions se ejecuta en cada `push` y `pull_request`. Valida:
+GitHub Actions valida en cada `push` y `pull_request`:
 
-- Generación del cliente Prisma.
-- Creación y migración de la base `gopass_test`.
-- Tests unitarios e integración HTTP.
+- Generacion del cliente Prisma.
+- Creacion y migracion de `gopass_test`.
+- Tests unitarios e integracion HTTP.
 - Build y lint del backend.
 - Build y lint del frontend.
 
-El workflow está definido en `.github/workflows/ci.yml`.
+Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+## Mejoras futuras
+
+- Adjuntos de imagenes, PDFs y otros archivos en proyectos y tareas.
+- Almacenamiento de objetos con Supabase Storage o S3.
+- Metadatos, limites, validacion MIME, URLs firmadas y permisos por archivo.
+- Previsualizacion de imagenes y PDFs.
+- Auditoria de subida, reemplazo y eliminacion de archivos.
+- Mayor cobertura del modulo `Users`.
+- Notificaciones para asignaciones, notas y cambios de estado.
+- Asignacion multiple mediante una relacion N:N si el negocio lo requiere.
