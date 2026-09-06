@@ -1,6 +1,7 @@
 import type { DragEvent } from 'react';
 import type { Task, TaskStatus } from '../types';
 import { formatDate } from '../../../lib/date';
+import { canTransitionTaskStatus, isViewerStatusTransitionAllowed } from '../status';
 
 const statusLabels: Record<TaskStatus, string> = {
   PENDING: 'Pendiente',
@@ -26,7 +27,16 @@ type TaskListProps = {
   onStatusDenied: () => void;
 };
 
-export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, onOpen, onChangeStatus, onStatusDenied }: TaskListProps) {
+export function TaskList({
+  tasks,
+  currentUserId,
+  isAdmin,
+  canCreate,
+  onCreate,
+  onOpen,
+  onChangeStatus,
+  onStatusDenied,
+}: TaskListProps) {
   const statuses: TaskStatus[] = ['PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
 
   return (
@@ -39,11 +49,20 @@ export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, o
           const taskId = event.dataTransfer.getData('text/task-id');
           const task = tasks.find((item) => item.id === taskId);
 
-          if (!task || task.status === status || (!isAdmin && task.creator.id !== currentUserId && task.assignee?.id !== currentUserId)) {
+          if (
+            !task ||
+            task.status === status ||
+            !canTransitionTaskStatus(task.status, status) ||
+            (!isAdmin && task.creator.id !== currentUserId && task.assignee?.id !== currentUserId)
+          ) {
             return;
           }
 
           if (status === 'DONE' && !isAdmin) {
+            onStatusDenied();
+            return;
+          }
+          if (!isAdmin && !isViewerStatusTransitionAllowed(task.status, status)) {
             onStatusDenied();
             return;
           }
@@ -72,13 +91,19 @@ export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, o
                     key={task.id}
                     type="button"
                     className="task-item"
-                    draggable={isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId}
+                    draggable={
+                      isAdmin ||
+                      task.creator.id === currentUserId ||
+                      task.assignee?.id === currentUserId
+                    }
                     onDragStart={(event) => event.dataTransfer.setData('text/task-id', task.id)}
                     onClick={() => onOpen(task)}
                   >
                     <div className="task-main">
                       <div className="task-heading">
-                        <span className={`task-priority task-priority-${task.priority.toLowerCase()}`}>
+                        <span
+                          className={`task-priority task-priority-${task.priority.toLowerCase()}`}
+                        >
                           Prioridad {priorityLabels[task.priority]}
                         </span>
                         <p className="task-project">Proyecto: {task.project.name}</p>

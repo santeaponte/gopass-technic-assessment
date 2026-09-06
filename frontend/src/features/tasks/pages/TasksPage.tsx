@@ -13,6 +13,7 @@ import { TaskList } from '../components/TaskList';
 import type { Task, TaskFormValues, TaskStatus } from '../types';
 import type { Project } from '../../projects/types';
 import type { PublicUser } from '../../auth/types';
+import { canTransitionTaskStatus, isViewerStatusTransitionAllowed } from '../status';
 
 const emptyTaskValues: TaskFormValues = {
   title: '',
@@ -55,19 +56,22 @@ export function TasksPage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isStatusNoticeOpen, setIsStatusNoticeOpen] = useState(false);
 
-  const loadTasks = useCallback(async (term: string): Promise<void> => {
-    try {
-      const nextTasks = await getTasks(term.trim(), (projectId ?? projectFilterId) || undefined);
-      setTasks(nextTasks);
-      setError('');
-    } catch (requestError) {
-      console.error(requestError);
-      setTasks([]);
-      setError('No pudimos cargar las tareas. Inténtalo de nuevo.');
-    } finally {
-      setLoading(false);
-    }
-  }, [projectFilterId, projectId]);
+  const loadTasks = useCallback(
+    async (term: string): Promise<void> => {
+      try {
+        const nextTasks = await getTasks(term.trim(), (projectId ?? projectFilterId) || undefined);
+        setTasks(nextTasks);
+        setError('');
+      } catch (requestError) {
+        console.error(requestError);
+        setTasks([]);
+        setError('No pudimos cargar las tareas. Inténtalo de nuevo.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [projectFilterId, projectId],
+  );
 
   useEffect(() => {
     const loadProjectAndUsers = async (): Promise<void> => {
@@ -91,10 +95,12 @@ export function TasksPage() {
     if (projectId) {
       return;
     }
-    void getProjects().then(setAvailableProjects).catch((requestError: unknown) => {
-      console.error(requestError);
-      setError('No pudimos cargar los proyectos para crear la tarea.');
-    });
+    void getProjects()
+      .then(setAvailableProjects)
+      .catch((requestError: unknown) => {
+        console.error(requestError);
+        setError('No pudimos cargar los proyectos para crear la tarea.');
+      });
   }, [projectId]);
 
   useEffect(() => {
@@ -124,7 +130,13 @@ export function TasksPage() {
       setTaskFormError('Selecciona un proyecto para crear la tarea.');
       return;
     }
-    if (!projectId && !availableProjects.some((availableProject) => availableProject.id === targetProjectId && availableProject.status === 'ACTIVE')) {
+    if (
+      !projectId &&
+      !availableProjects.some(
+        (availableProject) =>
+          availableProject.id === targetProjectId && availableProject.status === 'ACTIVE',
+      )
+    ) {
       setTaskFormError('Solo puedes crear tareas en proyectos activos.');
       return;
     }
@@ -143,7 +155,9 @@ export function TasksPage() {
       setEditingTask(null);
     } catch (requestError) {
       console.error(requestError);
-      setTaskFormError(requestError instanceof ApiError ? requestError.message : 'No pudimos crear la tarea.');
+      setTaskFormError(
+        requestError instanceof ApiError ? requestError.message : 'No pudimos crear la tarea.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -166,12 +180,16 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
-      setTasks((currentTasks) => currentTasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+      setTasks((currentTasks) =>
+        currentTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)),
+      );
       setIsFormOpen(false);
       setEditingTask(null);
     } catch (requestError) {
       console.error(requestError);
-      setError(requestError instanceof ApiError ? requestError.message : 'No pudimos editar la tarea.');
+      setError(
+        requestError instanceof ApiError ? requestError.message : 'No pudimos editar la tarea.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -192,7 +210,9 @@ export function TasksPage() {
       setTasks((currentTasks) => currentTasks.filter((item) => item.id !== task.id));
     } catch (requestError) {
       console.error(requestError);
-      setError(requestError instanceof ApiError ? requestError.message : 'No pudimos archivar la tarea.');
+      setError(
+        requestError instanceof ApiError ? requestError.message : 'No pudimos archivar la tarea.',
+      );
     }
   };
 
@@ -205,22 +225,40 @@ export function TasksPage() {
     if (!canChangeStatus) {
       return false;
     }
+    if (!canTransitionTaskStatus(task.status, status)) {
+      return false;
+    }
+    if (!isAdmin && !isViewerStatusTransitionAllowed(task.status, status)) {
+      setIsStatusNoticeOpen(true);
+      return false;
+    }
 
     setError('');
+    const previousTasks = tasks;
+    setTasks((currentTasks) =>
+      currentTasks.map((item) => (item.id === task.id ? { ...item, status } : item)),
+    );
     try {
       const updatedTask = await changeTaskStatus(task.id, { status });
       if (!updatedTask) {
         throw new Error('Task status update returned no task');
       }
-      setTasks((currentTasks) => currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item));
+      setTasks((currentTasks) =>
+        currentTasks.map((item) => (item.id === updatedTask.id ? updatedTask : item)),
+      );
       return true;
     } catch (requestError) {
+      setTasks(previousTasks);
       console.error(requestError);
       if (requestError instanceof ApiError && requestError.status === 403) {
         setIsStatusNoticeOpen(true);
         return false;
       }
-      setError(requestError instanceof ApiError ? requestError.message : 'No pudimos actualizar el estado.');
+      setError(
+        requestError instanceof ApiError
+          ? requestError.message
+          : 'No pudimos actualizar el estado.',
+      );
       return false;
     }
   };
@@ -234,11 +272,15 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
-      setTasks((currentTasks) => currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item));
+      setTasks((currentTasks) =>
+        currentTasks.map((item) => (item.id === updatedTask.id ? updatedTask : item)),
+      );
       setSelectedTask(updatedTask);
     } catch (requestError) {
       console.error(requestError);
-      setError(requestError instanceof ApiError ? requestError.message : 'No pudimos editar la tarea.');
+      setError(
+        requestError instanceof ApiError ? requestError.message : 'No pudimos editar la tarea.',
+      );
       throw requestError;
     } finally {
       setIsSubmitting(false);
@@ -253,7 +295,7 @@ export function TasksPage() {
   const handleModalStatus = async (task: Task, status: TaskStatus): Promise<void> => {
     const updated = await handleChangeStatus(task, status);
     if (updated) {
-      setSelectedTask((currentTask) => currentTask ? { ...currentTask, status } : null);
+      setSelectedTask((currentTask) => (currentTask ? { ...currentTask, status } : null));
     }
   };
 
@@ -286,21 +328,29 @@ export function TasksPage() {
   if (projectId && project && !isAdmin && project.status !== 'ACTIVE') {
     return (
       <main className="app-page tasks-page">
-        <Link className="back-link" to="/projects">← Volver a proyectos</Link>
+        <Link className="back-link" to="/projects">
+          ← Volver a proyectos
+        </Link>
         <section className="tasks-header">
           <div>
             <p className="tasks-kicker">Tareas</p>
             <h1>Proyecto: {project.name}</h1>
           </div>
         </section>
-        <p className="inactive-project-message" role="status">El proyecto está inactivo.</p>
+        <p className="inactive-project-message" role="status">
+          El proyecto está inactivo.
+        </p>
       </main>
     );
   }
 
   return (
     <main className="app-page tasks-page">
-      {projectId && <Link className="back-link" to="/projects">← Volver a proyectos</Link>}
+      {projectId && (
+        <Link className="back-link" to="/projects">
+          ← Volver a proyectos
+        </Link>
+      )}
 
       <section className="tasks-header">
         <div>
@@ -347,7 +397,9 @@ export function TasksPage() {
 
       <form className="tasks-search" onSubmit={(event) => event.preventDefault()} noValidate>
         <label className="search-field">
-          <span className="search-icon" aria-hidden="true">⌕</span>
+          <span className="search-icon" aria-hidden="true">
+            ⌕
+          </span>
           <input
             type="search"
             value={search}
@@ -358,7 +410,11 @@ export function TasksPage() {
         </label>
       </form>
 
-      {error && <p className="form-error" role="alert">{error}</p>}
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
 
       {isFormOpen && (
         <div
@@ -377,11 +433,20 @@ export function TasksPage() {
             aria-labelledby="task-create-title"
             onMouseDown={(event) => event.stopPropagation()}
           >
-            <button type="button" className="project-modal-close" onClick={closeForm} aria-label="Cerrar formulario de tarea">
+            <button
+              type="button"
+              className="project-modal-close"
+              onClick={closeForm}
+              aria-label="Cerrar formulario de tarea"
+            >
               ×
             </button>
             <h2 id="task-create-title">{editingTask ? 'Editar tarea' : 'Nueva tarea'}</h2>
-            {taskFormError && <p className="form-error" role="alert">{taskFormError}</p>}
+            {taskFormError && (
+              <p className="form-error" role="alert">
+                {taskFormError}
+              </p>
+            )}
             <TaskForm
               key={editingTask ? editingTask.id : 'new-task'}
               initialValues={editingTask ? toFormValues(editingTask) : emptyTaskValues}
@@ -436,7 +501,11 @@ export function TasksPage() {
       )}
 
       {isStatusNoticeOpen && (
-        <div className="task-status-notice-backdrop" role="presentation" onMouseDown={() => setIsStatusNoticeOpen(false)}>
+        <div
+          className="task-status-notice-backdrop"
+          role="presentation"
+          onMouseDown={() => setIsStatusNoticeOpen(false)}
+        >
           <div
             className="task-status-notice"
             role="alertdialog"
@@ -444,10 +513,16 @@ export function TasksPage() {
             aria-labelledby="task-status-notice-title"
             onMouseDown={(event) => event.stopPropagation()}
           >
-            <span className="task-status-notice-mark" aria-hidden="true">!</span>
+            <span className="task-status-notice-mark" aria-hidden="true">
+              !
+            </span>
             <h2 id="task-status-notice-title">Acción no permitida</h2>
             <p>Solo un administrador puede completar o reabrir esta tarea.</p>
-            <button type="button" className="primary-button" onClick={() => setIsStatusNoticeOpen(false)}>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => setIsStatusNoticeOpen(false)}
+            >
               Entendido
             </button>
           </div>
