@@ -9,6 +9,9 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
+    "test:db:create": "tsx scripts/create-test-db.ts",
+    "test:db:migrate": "prisma migrate deploy --config prisma.test.config.ts",
+    "test:db:setup": "npm run test:db:create && npm run test:db:migrate",
     "test": "vitest run",
     "lint": "eslint src --config ../eslint.config.js",
     "format": "prettier --write src"
