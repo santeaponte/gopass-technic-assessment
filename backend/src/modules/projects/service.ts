@@ -68,15 +68,7 @@ export class ProjectService {
 
 	public async delete(id: string): Promise<void> {
 		await this.ensureExists(id);
-
-		try {
-			await this.projectRepository.delete(id);
-		} catch (error: unknown) {
-			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-				throw new AppError(409, 'No puedes eliminar un proyecto que todavía tiene tareas');
-			}
-			throw error;
-		}
+		await this.projectRepository.delete(id);
 	}
 
 	private async ensureExists(id: string) {

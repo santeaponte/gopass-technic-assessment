@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import type { TaskStatus, UserRole } from '@prisma/client';
 import { AppError } from '../../shared/errors';
 import { TaskRepository } from './repository';
-import type { ChangeTaskStatusInput, CreateTaskInput, UpdateTaskInput } from './schemas';
+import type { ChangeTaskStatusInput, CreateTaskInput, CreateTaskNoteInput, UpdateTaskInput } from './schemas';
 
 const allowedTransitions: Record<TaskStatus, Partial<Record<TaskStatus, UserRole[]>>> = {
 	PENDING: {
@@ -146,7 +146,6 @@ export class TaskService {
 		}
 
 		const task = await this.findById(id, userId, role);
-		await this.ensureProjectIsActive(this.taskRepository, task.projectId);
 		try {
 			await this.taskRepository.delete(task.id);
 		} catch (error: unknown) {
@@ -155,6 +154,26 @@ export class TaskService {
 			}
 			throw error;
 		}
+	}
+
+	public async findNotes(id: string, userId: string, role: UserRole) {
+		const task = await this.taskRepository.findById(id, userId, role);
+		if (!task) {
+			throw new AppError(404, 'Task not found');
+		}
+		return this.taskRepository.findNotes(id);
+	}
+
+	public async createNote(id: string, input: CreateTaskNoteInput, userId: string, role: UserRole) {
+		const task = await this.taskRepository.findById(id, userId, role);
+		if (!task) {
+			throw new AppError(404, 'Task not found');
+		}
+		if (role === 'VIEWER' && task.creator.id !== userId && task.assignee?.id !== userId) {
+			throw new AppError(403, 'Only the task creator or assignee can add notes');
+		}
+		await this.ensureProjectIsActive(this.taskRepository, task.projectId);
+		return this.taskRepository.createNote(id, userId, input.content);
 	}
 
 	private async ensureTaskExists(repository: TaskRepository, id: string): Promise<void> {
