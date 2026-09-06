@@ -340,17 +340,23 @@
 
 .description-preview {
   display: block;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .description-preview-text {
+  max-width: 100%;
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 5;
+  overflow-wrap: anywhere;
 }
 
 .description-preview .description-read-more {
-  display: inline-block;
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .project-meta {
@@ -678,6 +684,14 @@
 
 .project-task-item strong {
   color: #19343a;
+}
+
+.project-task-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .project-task-item p {

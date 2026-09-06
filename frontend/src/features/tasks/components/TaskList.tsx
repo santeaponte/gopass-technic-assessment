@@ -81,6 +81,7 @@ export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, o
                         <span className={`task-priority task-priority-${task.priority.toLowerCase()}`}>
                           Prioridad {priorityLabels[task.priority]}
                         </span>
+                        <p className="task-project">Proyecto: {task.project.name}</p>
                         <h3>{task.title}</h3>
                       </div>
                       <p className="task-due-date">Entrega: {dueDate || 'Sin fecha'}</p>
