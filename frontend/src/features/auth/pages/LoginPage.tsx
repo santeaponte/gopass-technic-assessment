@@ -74,7 +74,7 @@ export function LoginPage() {
   return (
     <main className="login-page">
       <section className="login-intro" aria-labelledby="login-title">
-        <p className="login-kicker">Gopass workspace</p>
+        <p className="login-kicker">Workspace</p>
         <h1 className="login-title" id="login-title">
           Gopass: haz que pase.
         </h1>
