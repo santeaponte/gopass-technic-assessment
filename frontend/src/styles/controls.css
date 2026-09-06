@@ -92,8 +92,7 @@
 
 .project-form-field input:focus,
 .project-form-field textarea:focus,
-.project-form-field select:focus,
-.projects-search input:focus {
+.project-form-field select:focus {
   outline: 2px solid #df6b3f;
   outline-offset: 2px;
 }

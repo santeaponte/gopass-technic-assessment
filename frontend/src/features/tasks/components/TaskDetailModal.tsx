@@ -80,9 +80,10 @@ export function TaskDetailModal({
           ×
         </button>
 
-        <p className="tasks-kicker">Detalle de tarea</p>
+        <p className="tasks-kicker">
+          Detalle de tarea · <span className="task-detail-project">Proyecto: {task.project.name}</span>
+        </p>
         <h2 id="task-detail-title">{task.title}</h2>
-        <p className="task-detail-description">{task.description || 'Sin descripción.'}</p>
 
         <dl className="task-detail-meta">
           <div>
@@ -116,7 +117,11 @@ export function TaskDetailModal({
             </dd>
           </div>
           <div>
-            <dt>Entrega</dt>
+            <dt>Fecha de creación</dt>
+            <dd>{formatDate(task.createdAt)}</dd>
+          </div>
+          <div>
+            <dt>Fecha de entrega</dt>
             <dd>{formatDate(task.dueDate)}</dd>
           </div>
           <div>
@@ -128,6 +133,9 @@ export function TaskDetailModal({
             <dd>{task.assignee?.name ?? 'Sin asignar'}</dd>
           </div>
         </dl>
+
+        <p className="task-detail-description-label">Descripción</p>
+        <p className="task-detail-description">{task.description || 'Sin descripción.'}</p>
 
         <div className="task-detail-actions">
           {isAdmin && (

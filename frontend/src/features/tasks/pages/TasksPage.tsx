@@ -180,6 +180,10 @@ export function TasksPage() {
       return true;
     } catch (requestError) {
       console.error(requestError);
+      if (requestError instanceof ApiError && requestError.status === 403) {
+        setIsStatusNoticeOpen(true);
+        return false;
+      }
       setError(requestError instanceof ApiError ? requestError.message : 'No pudimos actualizar el estado.');
       return false;
     }
@@ -296,8 +300,8 @@ export function TasksPage() {
             onMouseDown={(event) => event.stopPropagation()}
           >
             <span className="task-status-notice-mark" aria-hidden="true">!</span>
-            <h2 id="task-status-notice-title">Todavía no puedes completarla</h2>
-            <p>Un administrador debe mover la tarea a Completada.</p>
+            <h2 id="task-status-notice-title">Acción no permitida</h2>
+            <p>Solo un administrador puede completar o reabrir esta tarea.</p>
             <button type="button" className="primary-button" onClick={() => setIsStatusNoticeOpen(false)}>
               Entendido
             </button>
