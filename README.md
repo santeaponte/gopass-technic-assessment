@@ -1,5 +1,7 @@
 # gopass-technic-assessment
 
+[![CI](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml/badge.svg?branch=feature/testing)](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml)
+
 ## Ejecutar todo con Docker
 
 Requiere Docker Desktop con Compose habilitado:
