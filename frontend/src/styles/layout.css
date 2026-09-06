@@ -150,10 +150,11 @@
   max-width: none;
   margin: 0;
   padding: 0;
-  background-image: linear-gradient(rgb(255 252 247 / 84%), rgb(255 252 247 / 84%)),
-    url('../assets/images/image.png');
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-attachment: fixed;
+}
+
+.app-page {
+  width: min(72rem, 100%);
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 3rem;
 }
