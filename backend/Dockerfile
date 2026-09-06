@@ -16,4 +16,4 @@ RUN npm run build --workspace backend
 WORKDIR /app/backend
 EXPOSE 4000
 
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run prisma:seed && npm start"]
