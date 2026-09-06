@@ -10,6 +10,7 @@ type TaskDetailModalProps = {
   onEdit: (task: Task) => void;
   onArchive: (task: Task) => void;
   onChangeStatus: (task: Task, status: TaskStatus) => void;
+  onStatusDenied: () => void;
 };
 
 const statusLabels: Record<TaskStatus, string> = {
@@ -25,12 +26,7 @@ const priorityLabels: Record<TaskPriority, string> = {
   HIGH: 'Alta',
 };
 
-const nextStatuses: Record<TaskStatus, TaskStatus | null> = {
-  PENDING: 'IN_PROGRESS',
-  IN_PROGRESS: 'IN_REVIEW',
-  IN_REVIEW: 'DONE',
-  DONE: null,
-};
+const editableStatuses: TaskStatus[] = ['PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
 
 function formatDate(value: string | null): string {
   if (!value) {
@@ -49,11 +45,12 @@ export function TaskDetailModal({
   onEdit,
   onArchive,
   onChangeStatus,
+  onStatusDenied,
 }: TaskDetailModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
-  const canChangeStatus = isAdmin || task.assignee?.id === currentUserId;
+  const canChangeStatus = isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId;
   const canArchive = isAdmin || task.creator?.id === currentUserId;
-  const nextStatus = nextStatuses[task.status];
+  const availableStatuses = editableStatuses;
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -90,7 +87,27 @@ export function TaskDetailModal({
         <dl className="task-detail-meta">
           <div>
             <dt>Estado</dt>
-            <dd>{statusLabels[task.status]}</dd>
+            <dd>
+              {canChangeStatus ? (
+                <select
+                  className="task-detail-status-select"
+                  value={task.status}
+                  onChange={(event) => {
+                    const nextStatus = event.target.value as TaskStatus;
+                    if (nextStatus === 'DONE' && !isAdmin) {
+                      onStatusDenied();
+                      return;
+                    }
+                    onChangeStatus(task, nextStatus);
+                  }}
+                  aria-label="Cambiar estado de tarea"
+                >
+                  {availableStatuses.map((status) => (
+                    <option key={status} value={status}>{statusLabels[status]}</option>
+                  ))}
+                </select>
+              ) : statusLabels[task.status]}
+            </dd>
           </div>
           <div>
             <dt>Prioridad</dt>
@@ -116,11 +133,6 @@ export function TaskDetailModal({
           {isAdmin && (
             <button type="button" className="secondary-button" onClick={() => onEdit(task)}>
               Editar
-            </button>
-          )}
-          {canChangeStatus && nextStatus && (
-            <button type="button" className="primary-button" onClick={() => onChangeStatus(task, nextStatus)}>
-              Pasar a {statusLabels[nextStatus]}
             </button>
           )}
           {canArchive && (

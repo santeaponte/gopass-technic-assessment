@@ -1,14 +1,11 @@
 .tasks-page {
-  width: min(72rem, 100%);
-  min-height: 100svh;
-  margin: 0 auto;
-  padding: 3rem 2rem;
   display: grid;
   gap: 1.5rem;
 }
 
 .back-link {
   width: fit-content;
+  margin-bottom: -0.75rem;
   color: #607178;
   font-size: 0.9rem;
   font-weight: 700;
@@ -70,6 +67,9 @@
 
 .tasks-search input {
   flex: 1;
+  border: 0;
+  padding: 0.8rem 0.65rem;
+  outline: 0;
 }
 
 .tasks-search input:focus,
@@ -85,6 +85,11 @@
   border-radius: 10px;
   padding: 1.25rem;
   background: #fff;
+}
+
+.search-field:focus-within {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
 }
 
 .task-panel h2 {

@@ -1,3 +1,4 @@
+import type { DragEvent } from 'react';
 import type { Task, TaskStatus } from '../types';
 
 const statusLabels: Record<TaskStatus, string> = {
@@ -15,9 +16,13 @@ const priorityLabels = {
 
 type TaskListProps = {
   tasks: Task[];
+  currentUserId: string;
+  isAdmin: boolean;
   canCreate: boolean;
   onCreate: () => void;
   onOpen: (task: Task) => void;
+  onChangeStatus: (task: Task, status: TaskStatus) => void;
+  onStatusDenied: () => void;
 };
 
 function formatDate(value: string | null): string | null {
@@ -31,7 +36,7 @@ function formatDate(value: string | null): string | null {
   }).format(new Date(value));
 }
 
-export function TaskList({ tasks, canCreate, onCreate, onOpen }: TaskListProps) {
+export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, onOpen, onChangeStatus, onStatusDenied }: TaskListProps) {
   const statuses: TaskStatus[] = ['PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
 
   return (
@@ -39,8 +44,30 @@ export function TaskList({ tasks, canCreate, onCreate, onOpen }: TaskListProps) 
       {statuses.map((status) => {
         const columnTasks = tasks.filter((task) => task.status === status);
 
+        const handleDrop = (event: DragEvent<HTMLElement>) => {
+          event.preventDefault();
+          const taskId = event.dataTransfer.getData('text/task-id');
+          const task = tasks.find((item) => item.id === taskId);
+
+          if (!task || task.status === status || (!isAdmin && task.creator.id !== currentUserId && task.assignee?.id !== currentUserId)) {
+            return;
+          }
+
+          if (status === 'DONE' && !isAdmin) {
+            onStatusDenied();
+            return;
+          }
+
+          onChangeStatus(task, status);
+        };
+
         return (
-          <section key={status} className={`task-column task-column-${status.toLowerCase()}`}>
+          <section
+            key={status}
+            className={`task-column task-column-${status.toLowerCase()}`}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={handleDrop}
+          >
             <header className="task-column-header">
               <h2>{statusLabels[status]}</h2>
               <span className="task-column-count">{columnTasks.length}</span>
@@ -51,7 +78,14 @@ export function TaskList({ tasks, canCreate, onCreate, onOpen }: TaskListProps) 
                 const dueDate = formatDate(task.dueDate);
 
                 return (
-                  <button key={task.id} type="button" className="task-item" onClick={() => onOpen(task)}>
+                  <button
+                    key={task.id}
+                    type="button"
+                    className="task-item"
+                    draggable={isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId}
+                    onDragStart={(event) => event.dataTransfer.setData('text/task-id', task.id)}
+                    onClick={() => onOpen(task)}
+                  >
                     <div className="task-main">
                       <div className="task-heading">
                         <span className={`task-priority task-priority-${task.priority.toLowerCase()}`}>

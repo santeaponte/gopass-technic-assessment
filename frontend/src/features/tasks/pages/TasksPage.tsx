@@ -54,6 +54,7 @@ export function TasksPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isStatusNoticeOpen, setIsStatusNoticeOpen] = useState(false);
 
   const loadTasks = useCallback(async (term: string): Promise<void> => {
     try {
@@ -97,7 +98,7 @@ export function TasksPage() {
   }, [loadTasks, search]);
 
   const handleCreate = async (values: TaskFormValues): Promise<void> => {
-    if (!isAdmin) {
+    if (!projectId) {
       return;
     }
 
@@ -105,10 +106,6 @@ export function TasksPage() {
     setError('');
 
     try {
-      if (!projectId) {
-        return;
-      }
-
       const createdTask = await createTask(projectId, values);
       if (!createdTask) {
         throw new Error('Task creation returned no task');
@@ -165,10 +162,10 @@ export function TasksPage() {
     }
   };
 
-  const handleChangeStatus = async (task: Task, status: TaskStatus): Promise<void> => {
+  const handleChangeStatus = async (task: Task, status: TaskStatus): Promise<boolean> => {
     const canChangeStatus = isAdmin || task.assignee?.id === user?.id;
     if (!canChangeStatus) {
-      return;
+      return false;
     }
 
     setError('');
@@ -180,9 +177,11 @@ export function TasksPage() {
       setTasks((currentTasks) => sortTasksByDueDate(
         currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item),
       ));
+      return true;
     } catch (requestError) {
       console.error(requestError);
       setError(requestError instanceof ApiError ? requestError.message : 'No pudimos actualizar el estado.');
+      return false;
     }
   };
 
@@ -198,8 +197,10 @@ export function TasksPage() {
   };
 
   const handleModalStatus = async (task: Task, status: TaskStatus): Promise<void> => {
-    await handleChangeStatus(task, status);
-    setSelectedTask((currentTask) => currentTask ? { ...currentTask, status } : null);
+    const updated = await handleChangeStatus(task, status);
+    if (updated) {
+      setSelectedTask((currentTask) => currentTask ? { ...currentTask, status } : null);
+    }
   };
 
   const closeForm = () => {
@@ -209,7 +210,7 @@ export function TasksPage() {
   };
 
   return (
-    <main className="tasks-page">
+    <main className="app-page tasks-page">
       {projectId && <Link className="back-link" to="/projects">← Volver a proyectos</Link>}
 
       <section className="tasks-header">
@@ -221,18 +222,21 @@ export function TasksPage() {
       </section>
 
       <form className="tasks-search" onSubmit={(event) => event.preventDefault()} noValidate>
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar tareas"
-          aria-label="Buscar tareas"
-        />
+        <label className="search-field">
+          <span className="search-icon" aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar tareas"
+            aria-label="Buscar tareas"
+          />
+        </label>
       </form>
 
       {error && <p className="form-error" role="alert">{error}</p>}
 
-      {isFormOpen && isAdmin && (
+      {isFormOpen && projectId && (
         <section className="task-panel">
           <h2>{editingTask ? 'Editar tarea' : 'Nueva tarea'}</h2>
           <TaskForm
@@ -254,9 +258,13 @@ export function TasksPage() {
       ) : (
         <TaskList
           tasks={tasks}
-          canCreate={isAdmin && Boolean(projectId)}
+          currentUserId={user?.id ?? ''}
+          isAdmin={isAdmin}
+          canCreate={Boolean(projectId)}
           onCreate={() => { setEditingTask(null); setIsFormOpen(true); }}
           onOpen={setSelectedTask}
+          onChangeStatus={handleChangeStatus}
+          onStatusDenied={() => setIsStatusNoticeOpen(true)}
         />
       )}
 
@@ -269,7 +277,27 @@ export function TasksPage() {
           onEdit={handleModalEdit}
           onArchive={handleModalArchive}
           onChangeStatus={handleModalStatus}
+          onStatusDenied={() => setIsStatusNoticeOpen(true)}
         />
+      )}
+
+      {isStatusNoticeOpen && (
+        <div className="task-status-notice-backdrop" role="presentation" onMouseDown={() => setIsStatusNoticeOpen(false)}>
+          <div
+            className="task-status-notice"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="task-status-notice-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <span className="task-status-notice-mark" aria-hidden="true">!</span>
+            <h2 id="task-status-notice-title">Todavía no puedes completarla</h2>
+            <p>Un administrador debe mover la tarea a Completada.</p>
+            <button type="button" className="primary-button" onClick={() => setIsStatusNoticeOpen(false)}>
+              Entendido
+            </button>
+          </div>
+        </div>
       )}
     </main>
   );
