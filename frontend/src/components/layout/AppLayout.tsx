@@ -3,10 +3,7 @@ import '../../App.css';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import logo from '../../assets/images/gopass_logo.webp';
 import { useAuth } from '../../features/auth/context/useAuth';
-import { ApiError } from '../../lib/api/client';
-import { createViewer } from '../../features/users/api';
-import { UserForm } from '../../features/users/components/UserForm';
-import type { CreateViewerValues } from '../../features/users/schemas';
+import { UserManagementModal } from '../../features/users/components/UserManagementModal';
 
 const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 
@@ -15,9 +12,7 @@ export function AppLayout() {
   const { pathname } = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isCreateUserOpen, setIsCreateUserOpen] = useState(false);
-  const [isCreatingUser, setIsCreatingUser] = useState(false);
-  const [createUserError, setCreateUserError] = useState('');
+  const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const projectTasksMatch = pathname.match(/^\/projects\/([^/]+)\/tasks(?:\/|$)/);
   const projectTasksPath = projectTasksMatch ? `/projects/${projectTasksMatch[1]}/tasks` : null;
@@ -27,20 +22,6 @@ export function AppLayout() {
     logout();
     navigate('/login', { replace: true });
   }, [logout, navigate]);
-
-  const handleCreateUser = async (values: CreateViewerValues): Promise<void> => {
-    setIsCreatingUser(true);
-    setCreateUserError('');
-    try {
-      await createViewer(values);
-      setIsCreateUserOpen(false);
-      setIsUserMenuOpen(false);
-    } catch (error: unknown) {
-      setCreateUserError(error instanceof ApiError ? error.message : 'No pudimos crear el usuario.');
-    } finally {
-      setIsCreatingUser(false);
-    }
-  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -117,11 +98,11 @@ export function AppLayout() {
                   type="button"
                   className="create-user-header-button"
                   onClick={() => {
-                    setCreateUserError('');
-                    setIsCreateUserOpen(true);
+                    setIsUserManagementOpen(true);
+                    setIsUserMenuOpen(false);
                   }}
                 >
-                  Crear usuario
+                  Usuarios
                 </button>
                 <span className="app-header-divider" aria-hidden="true" />
               </>
@@ -157,15 +138,8 @@ export function AppLayout() {
           </div>
         )}
       </header>
-      {isCreateUserOpen && (
-        <div className="user-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setIsCreateUserOpen(false)}>
-          <section className="user-modal" role="dialog" aria-modal="true" aria-labelledby="create-user-title" onMouseDown={(event) => event.stopPropagation()}>
-            <button type="button" className="user-modal-close" aria-label="Cerrar formulario" onClick={() => setIsCreateUserOpen(false)}>×</button>
-            <h2 id="create-user-title">Crear usuario Viewer</h2>
-            {createUserError && <p className="form-error" role="alert">{createUserError}</p>}
-            <UserForm onSubmit={handleCreateUser} onCancel={() => setIsCreateUserOpen(false)} isSubmitting={isCreatingUser} />
-          </section>
-        </div>
+      {isUserManagementOpen && user && (
+        <UserManagementModal currentUserId={user.id} onClose={() => setIsUserManagementOpen(false)} />
       )}
       <section className="app-content" aria-label="Application content">
         <Outlet />

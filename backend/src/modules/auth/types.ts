@@ -5,6 +5,7 @@ export type PublicUser = {
 	name: string;
 	email: string;
 	role: UserRole;
+	isActive: boolean;
 	createdAt: Date;
 };
 

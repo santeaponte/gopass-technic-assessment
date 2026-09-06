@@ -38,6 +38,7 @@ model User {
   email        String   @unique
   passwordHash String   @map("password_hash")
   role         UserRole @default(VIEWER)
+  isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
 
   ownedProjects Project[]          @relation("ProjectOwner")

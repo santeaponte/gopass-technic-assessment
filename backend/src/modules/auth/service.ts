@@ -37,6 +37,9 @@ export class AuthService {
 		if (!user || !passwordMatches) {
 			throw new AppError(401, 'Invalid email or password');
 		}
+		if (!user.isActive) {
+			throw new AppError(403, 'Tu usuario está desactivado');
+		}
 
 		return this.toAuthResponse(user);
 	}
@@ -46,6 +49,7 @@ export class AuthService {
 		name: string;
 		email: string;
 		role: PublicUser['role'];
+		isActive: boolean;
 		createdAt: Date;
 		passwordHash: string;
 	}): AuthResponse {
@@ -54,6 +58,7 @@ export class AuthService {
 			name: user.name,
 			email: user.email,
 			role: user.role,
+			isActive: user.isActive,
 			createdAt: user.createdAt,
 		};
 

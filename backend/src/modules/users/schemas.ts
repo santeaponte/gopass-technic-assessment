@@ -10,4 +10,9 @@ export const createViewerSchema = z.object({
 	password: z.string().min(8).max(128),
 }).strict();
 
+export const updateUserStatusSchema = z.object({
+	isActive: z.boolean(),
+}).strict();
+
 export type CreateViewerInput = z.infer<typeof createViewerSchema>;
+export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;

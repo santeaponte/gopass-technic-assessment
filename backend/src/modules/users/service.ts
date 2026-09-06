@@ -26,6 +26,7 @@ export class UserService {
 				name: user.name,
 				email: user.email,
 				role: user.role,
+				isActive: user.isActive,
 				createdAt: user.createdAt,
 			};
 		} catch (error: unknown) {
@@ -45,5 +46,20 @@ export class UserService {
 		}
 
 		return user;
+	}
+
+	public async updateStatus(id: string, isActive: boolean, currentUserId: string) {
+		if (id === currentUserId && !isActive) {
+			throw new AppError(409, 'No puedes desactivar tu propio usuario');
+		}
+
+		try {
+			return await this.userRepository.updateStatus(id, isActive);
+		} catch (error: unknown) {
+			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+				throw new AppError(404, 'User not found');
+			}
+			throw error;
+		}
 	}
 }

@@ -2,14 +2,15 @@ import type { User, UserRole } from '@prisma/client';
 
 import { prisma } from '../../shared/prisma';
 
-export type UserRecord = Pick<User, 'id' | 'name' | 'email' | 'passwordHash' | 'role' | 'createdAt'>;
-export type PublicUserRecord = Pick<User, 'id' | 'name' | 'email' | 'role' | 'createdAt'>;
+export type UserRecord = Pick<User, 'id' | 'name' | 'email' | 'passwordHash' | 'role' | 'isActive' | 'createdAt'>;
+export type PublicUserRecord = Pick<User, 'id' | 'name' | 'email' | 'role' | 'isActive' | 'createdAt'>;
 
 const publicUserSelect = {
 	id: true,
 	name: true,
 	email: true,
 	role: true,
+	isActive: true,
 	createdAt: true,
 } as const;
 
@@ -46,6 +47,14 @@ export class UserRepository {
 	public findById(id: string): Promise<PublicUserRecord | null> {
 		return prisma.user.findUnique({
 			where: { id },
+			select: publicUserSelect,
+		});
+	}
+
+	public updateStatus(id: string, isActive: boolean): Promise<PublicUserRecord> {
+		return prisma.user.update({
+			where: { id },
+			data: { isActive },
 			select: publicUserSelect,
 		});
 	}

@@ -247,6 +247,75 @@
   box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 20%);
 }
 
+.user-management-modal {
+  position: relative;
+  width: min(42rem, 100%);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 2.25rem 2rem 2rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 24%);
+}
+
+.user-management-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-right: 2.25rem;
+}
+
+.user-management-header h2 {
+  margin: 0;
+  color: #19343a;
+}
+
+.user-management-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.user-management-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+
+.user-management-item-inactive {
+  background: #f8fafb;
+  opacity: 0.75;
+}
+
+.user-management-item > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.user-management-item strong {
+  color: #19343a;
+}
+
+.user-management-item span,
+.user-management-item small {
+  color: #607178;
+  overflow-wrap: anywhere;
+}
+
+.user-management-item small {
+  font-weight: 700;
+}
+
 .user-modal h2 {
   margin: 0 0 1.25rem;
   color: #19343a;
@@ -256,6 +325,10 @@
   position: absolute;
   top: 0.75rem;
   right: 0.9rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  line-height: 1;
   border: 0;
   color: #607178;
   background: transparent;

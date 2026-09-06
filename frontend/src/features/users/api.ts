@@ -12,3 +12,10 @@ export function createViewer(values: CreateViewerValues): Promise<PublicUser> {
     body: values,
   });
 }
+
+export function updateUserStatus(id: string, isActive: boolean): Promise<PublicUser> {
+  return apiRequest<PublicUser>(`/users/${id}/status`, {
+    method: 'PATCH',
+    body: { isActive },
+  });
+}
