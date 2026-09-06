@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ApiError } from '../../../lib/api/client';
-import { createTask, getTasks } from '../../tasks/api';
+import { createTask, getTasks, updateTask } from '../../tasks/api';
 import { TaskForm } from '../../tasks/components/TaskForm';
 import type { Task, TaskFormValues, TaskStatus } from '../../tasks/types';
 import { getUsers } from '../../users/api';
 import type { PublicUser } from '../../auth/types';
 import type { Project } from '../types';
+import { DescriptionPreview } from '../../../components/DescriptionPreview';
+import { formatDate } from '../../../lib/date';
 
 type ProjectDetailModalProps = {
   project: Project;
   canManage: boolean;
   canCreateTask: boolean;
+  currentUserId: string;
   onClose: () => void;
   onEdit: (project: Project) => void;
   onStatusChange: (project: Project) => void;
@@ -38,15 +41,11 @@ const projectStatusLabels: Record<Project['status'], string> = {
   CANCELLED: 'Cancelado',
 };
 
-function formatDate(date: string): string {
-  const [year, month, day] = date.slice(0, 10).split('-');
-  return `${day}/${month}/${year}`;
-}
-
 export function ProjectDetailModal({
   project,
   canManage,
   canCreateTask,
+  currentUserId,
   onClose,
   onEdit,
   onStatusChange,
@@ -60,6 +59,8 @@ export function ProjectDetailModal({
   const [isTaskSubmitting, setIsTaskSubmitting] = useState(false);
   const [taskError, setTaskError] = useState('');
   const [isStatusWarningOpen, setIsStatusWarningOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isTaskEditFormOpen, setIsTaskEditFormOpen] = useState(false);
 
   useEffect(() => {
     const loadTasks = async (): Promise<void> => {
@@ -108,10 +109,52 @@ export function ProjectDetailModal({
     }
   };
 
+  const handleEditTask = async (values: TaskFormValues): Promise<void> => {
+    if (!selectedTask) {
+      return;
+    }
+
+    setIsTaskSubmitting(true);
+    setTaskError('');
+
+    try {
+      const updatedTask = await updateTask(selectedTask.id, project.id, values, !canManage);
+      if (!updatedTask) {
+        throw new Error('Task update returned no task');
+      }
+      setTasks((currentTasks) => currentTasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
+      setSelectedTask(updatedTask);
+      setIsTaskEditFormOpen(false);
+    } catch (requestError) {
+      console.error(requestError);
+      setTaskError(requestError instanceof ApiError ? requestError.message : 'No pudimos editar la tarea.');
+    } finally {
+      setIsTaskSubmitting(false);
+    }
+  };
+
+  const taskFormValues = (task: Task): TaskFormValues => ({
+    title: task.title,
+    description: task.description ?? '',
+    notes: task.notes ?? '',
+    priority: task.priority,
+    dueDate: task.dueDate?.slice(0, 10) ?? '',
+    assigneeId: task.assignee?.id ?? '',
+  });
+
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose();
+        if (isTaskEditFormOpen) {
+          setIsTaskEditFormOpen(false);
+        } else if (selectedTask) {
+          setSelectedTask(null);
+        } else if (isTaskFormOpen || isStatusWarningOpen) {
+          setIsTaskFormOpen(false);
+          setIsStatusWarningOpen(false);
+        } else {
+          onClose();
+        }
       }
     };
 
@@ -119,10 +162,18 @@ export function ProjectDetailModal({
     modalRef.current?.focus();
 
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+  }, [isStatusWarningOpen, isTaskEditFormOpen, isTaskFormOpen, onClose, selectedTask]);
 
   return (
-    <div className="project-modal-backdrop" role="presentation" onMouseDown={onClose}>
+    <div
+      className="project-modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div
         ref={modalRef}
         className="project-modal"
@@ -150,10 +201,26 @@ export function ProjectDetailModal({
           {!isLoading && !error && tasks.length > 0 && (
             <ul className="project-task-list">
               {tasks.map((task) => (
-                <li key={task.id} className="project-task-item">
+                <li
+                  key={task.id}
+                  className="project-task-item"
+                  tabIndex={0}
+                  role="button"
+                  onClick={() => setSelectedTask(task)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setSelectedTask(task);
+                    }
+                  }}
+                >
                   <div>
                     <strong>{task.title}</strong>
-                    <p>{task.description || 'Sin descripción.'}</p>
+                    <DescriptionPreview
+                      description={task.description}
+                      title={task.title}
+                      className="project-task-list-description"
+                    />
                   </div>
                   <span className={`project-task-status project-task-status-${task.status.toLowerCase()}`}>
                     {statusLabels[task.status]}
@@ -174,7 +241,6 @@ export function ProjectDetailModal({
             <p className="projects-kicker">Proyecto</p>
             <h2 id="project-detail-title">{project.name}</h2>
           </div>
-          <p className="project-modal-description">{project.description || 'Sin descripción.'}</p>
           <dl className="project-modal-meta">
             <div>
               <dt>Estado</dt>
@@ -192,13 +258,21 @@ export function ProjectDetailModal({
               <dt>Propietario</dt>
               <dd>{project.owner.name}</dd>
             </div>
-            {project.dueDate && (
-              <div>
-                <dt>Entrega</dt>
-                <dd>{formatDate(project.dueDate)}</dd>
-              </div>
-            )}
+            <div>
+              <dt>Fecha de creación</dt>
+              <dd>{formatDate(project.createdAt)}</dd>
+            </div>
+            <div>
+              <dt>Fecha de entrega</dt>
+              <dd>{project.dueDate ? formatDate(project.dueDate) : 'Sin fecha'}</dd>
+            </div>
           </dl>
+          <p className="project-modal-description-label">Descripción</p>
+          <DescriptionPreview
+            description={project.description}
+            title={project.name}
+            className="project-modal-description"
+          />
           {canManage && (
             <div className="project-modal-actions">
               <button type="button" className="secondary-button" onClick={() => onEdit(project)}>
@@ -215,6 +289,93 @@ export function ProjectDetailModal({
           )}
         </aside>
       </div>
+      {selectedTask && (
+        <div className="project-task-detail-backdrop" role="presentation" onMouseDown={() => setSelectedTask(null)}>
+          <section
+            className="project-task-detail-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="project-task-detail-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button type="button" className="project-modal-close" onClick={() => setSelectedTask(null)} aria-label="Cerrar detalle de tarea">
+              ×
+            </button>
+            <p className="projects-kicker">Detalle de tarea</p>
+            <h2 id="project-task-detail-title">{selectedTask.title}</h2>
+            <dl className="project-task-detail-meta">
+              <div><dt>Estado</dt><dd>{statusLabels[selectedTask.status]}</dd></div>
+              <div>
+                <dt>Prioridad</dt>
+                <dd>
+                  <span className={`task-priority task-priority-${selectedTask.priority.toLowerCase()}`}>
+                    Prioridad {priorityLabels[selectedTask.priority]}
+                  </span>
+                </dd>
+              </div>
+              <div><dt>Fecha de creación</dt><dd>{formatDate(selectedTask.createdAt)}</dd></div>
+              <div><dt>Fecha de entrega</dt><dd>{selectedTask.dueDate ? formatDate(selectedTask.dueDate) : 'Sin fecha'}</dd></div>
+              <div><dt>Creador</dt><dd>{selectedTask.creator.name}</dd></div>
+              <div><dt>Responsable</dt><dd>{selectedTask.assignee?.name ?? 'Sin asignar'}</dd></div>
+            </dl>
+            <p className="project-task-detail-label">Descripción</p>
+            <DescriptionPreview
+              description={selectedTask.description}
+              title={selectedTask.title}
+              className="project-task-detail-text"
+            />
+            <p className="project-task-detail-label">Notas</p>
+            <DescriptionPreview
+              description={selectedTask.notes}
+              title={`Notas de ${selectedTask.title}`}
+              className="project-task-detail-text"
+              emptyLabel="Sin notas."
+            />
+            {(canManage || selectedTask.creator.id === currentUserId || selectedTask.assignee?.id === currentUserId) && (
+              <div className="project-task-detail-actions">
+                <button type="button" className="secondary-button" onClick={() => { setTaskError(''); setIsTaskEditFormOpen(true); }}>
+                  {canManage ? 'Editar' : 'Editar notas'}
+                </button>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+      {isTaskEditFormOpen && selectedTask && (
+        <div
+          className="task-edit-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsTaskEditFormOpen(false);
+            }
+          }}
+        >
+          <div
+            className="task-create-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="task-edit-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button type="button" className="project-modal-close" onClick={() => setIsTaskEditFormOpen(false)} aria-label="Cerrar edición de tarea">
+              ×
+            </button>
+            <h2 id="task-edit-title">{canManage ? 'Editar tarea' : 'Notas de la tarea'}</h2>
+            {taskError && <p className="form-error" role="alert">{taskError}</p>}
+            <TaskForm
+              key={selectedTask.id}
+              initialValues={taskFormValues(selectedTask)}
+              users={users}
+              submitLabel="Guardar cambios"
+              onSubmit={handleEditTask}
+              onCancel={() => setIsTaskEditFormOpen(false)}
+              isSubmitting={isTaskSubmitting}
+              notesOnly={!canManage}
+            />
+          </div>
+        </div>
+      )}
       {isTaskFormOpen && (
         <div className="task-create-modal-backdrop" role="presentation" onMouseDown={() => setIsTaskFormOpen(false)}>
           <div

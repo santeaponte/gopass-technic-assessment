@@ -57,6 +57,7 @@ export type TaskRecord = Prisma.TaskGetPayload<{ select: typeof taskSelect }>;
 export type CreateTaskData = {
 	title: string;
 	description?: string | null;
+	notes?: string | null;
 	priority?: TaskPriority;
 	projectId: string;
 	creatorId: string;

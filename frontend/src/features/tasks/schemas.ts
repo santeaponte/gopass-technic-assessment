@@ -5,7 +5,8 @@ const taskPrioritySchema = z.enum(['LOW', 'MEDIUM', 'HIGH']);
 
 export const taskFormSchema = z.object({
   title: z.string().trim().min(1, 'El título es obligatorio.').max(200, 'El título es demasiado largo.'),
-  description: z.string().trim().max(5000, 'La descripción es demasiado larga.'),
+  description: z.string().trim(),
+  notes: z.string().trim().max(5000, 'Las notas son demasiado largas.'),
   priority: taskPrioritySchema,
   dueDate: z.string(),
   assigneeId: z.string(),

@@ -1,13 +1,20 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { Task, TaskPriority, TaskStatus } from '../types';
+import type { TaskFormValues } from '../schemas';
+import { TaskForm } from './TaskForm';
+import { formatDate } from '../../../lib/date';
+import { DescriptionPreview } from '../../../components/DescriptionPreview';
 
 type TaskDetailModalProps = {
   task: Task;
   currentUserId: string;
   isAdmin: boolean;
   onClose: () => void;
-  onEdit: (task: Task) => void;
+  users: import('../../auth/types').PublicUser[];
+  isSubmitting: boolean;
+  error: string;
+  onEdit: (task: Task, values: TaskFormValues) => Promise<void>;
   onArchive: (task: Task) => void;
   onChangeStatus: (task: Task, status: TaskStatus) => void;
   onStatusDenied: () => void;
@@ -28,19 +35,13 @@ const priorityLabels: Record<TaskPriority, string> = {
 
 const editableStatuses: TaskStatus[] = ['PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
 
-function formatDate(value: string | null): string {
-  if (!value) {
-    return 'Sin fecha';
-  }
-
-  const [year, month, day] = value.slice(0, 10).split('-');
-  return `${day}/${month}/${year}`;
-}
-
 export function TaskDetailModal({
   task,
   currentUserId,
   isAdmin,
+  users,
+  isSubmitting,
+  error,
   onClose,
   onEdit,
   onArchive,
@@ -48,8 +49,10 @@ export function TaskDetailModal({
   onStatusDenied,
 }: TaskDetailModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const canChangeStatus = isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId;
   const canArchive = isAdmin || task.creator?.id === currentUserId;
+  const canEditNotes = isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId;
   const availableStatuses = editableStatuses;
 
   useEffect(() => {
@@ -66,7 +69,16 @@ export function TaskDetailModal({
   }, [onClose]);
 
   return (
-    <div className="task-detail-modal-backdrop" role="presentation" onMouseDown={onClose}>
+    <>
+    <div
+      className="task-detail-modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div
         ref={modalRef}
         className="task-detail-modal"
@@ -135,12 +147,20 @@ export function TaskDetailModal({
         </dl>
 
         <p className="task-detail-description-label">Descripción</p>
-        <p className="task-detail-description">{task.description || 'Sin descripción.'}</p>
+        <DescriptionPreview description={task.description} title={task.title} className="task-detail-description" />
+
+        <p className="task-detail-description-label">Notas</p>
+        <DescriptionPreview
+          description={task.notes}
+          title={`Notas de ${task.title}`}
+          className="task-detail-description"
+          emptyLabel="Sin notas."
+        />
 
         <div className="task-detail-actions">
-          {isAdmin && (
-            <button type="button" className="secondary-button" onClick={() => onEdit(task)}>
-              Editar
+          {canEditNotes && (
+            <button type="button" className="secondary-button" onClick={() => setIsEditOpen(true)}>
+              {isAdmin ? 'Editar' : 'Editar notas'}
             </button>
           )}
           {canArchive && (
@@ -151,5 +171,38 @@ export function TaskDetailModal({
         </div>
       </div>
     </div>
+    {isEditOpen && (
+      <div className="task-edit-modal-backdrop" role="presentation" onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          setIsEditOpen(false);
+        }
+      }}>
+        <div className="task-create-modal" role="dialog" aria-modal="true" aria-labelledby="task-edit-title" onMouseDown={(event) => event.stopPropagation()}>
+          <button type="button" className="project-modal-close" onClick={() => setIsEditOpen(false)} aria-label="Cerrar edición de tarea">×</button>
+          <h2 id="task-edit-title">{isAdmin ? 'Editar tarea' : 'Notas de la tarea'}</h2>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <TaskForm
+            initialValues={{
+              title: task.title,
+              description: task.description ?? '',
+              notes: task.notes ?? '',
+              priority: task.priority,
+              dueDate: task.dueDate?.slice(0, 10) ?? '',
+              assigneeId: task.assignee?.id ?? '',
+            }}
+            users={users}
+            submitLabel="Guardar cambios"
+            onSubmit={async (values) => {
+              await onEdit(task, values);
+              setIsEditOpen(false);
+            }}
+            onCancel={() => setIsEditOpen(false)}
+            isSubmitting={isSubmitting}
+            notesOnly={!isAdmin}
+          />
+        </div>
+      </div>
+    )}
+    </>
   );
 }

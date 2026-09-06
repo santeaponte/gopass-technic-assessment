@@ -22,6 +22,7 @@ export function createTask(projectId: string, values: TaskFormValues): Promise<T
     body: {
       title: values.title,
       description: values.description || undefined,
+      notes: values.notes || undefined,
       priority: values.priority,
       projectId,
       dueDate: values.dueDate || undefined,
@@ -30,17 +31,25 @@ export function createTask(projectId: string, values: TaskFormValues): Promise<T
   });
 }
 
-export function updateTask(id: string, projectId: string, values: TaskFormValues): Promise<Task | null> {
+export function updateTask(
+  id: string,
+  projectId: string,
+  values: TaskFormValues,
+  notesOnly = false,
+): Promise<Task | null> {
   return apiRequest<Task | null>(`/tasks/${id}`, {
     method: 'PATCH',
-    body: {
-      title: values.title,
-      description: values.description || null,
-      priority: values.priority,
-      projectId,
-      dueDate: values.dueDate || null,
-      assigneeId: values.assigneeId || null,
-    },
+    body: notesOnly
+      ? { notes: values.notes || null }
+      : {
+          title: values.title,
+          description: values.description || null,
+          notes: values.notes || null,
+          priority: values.priority,
+          projectId,
+          dueDate: values.dueDate || null,
+          assigneeId: values.assigneeId || null,
+        },
   });
 }
 

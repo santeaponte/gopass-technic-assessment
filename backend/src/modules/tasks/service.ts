@@ -77,8 +77,8 @@ export class TaskService {
 					throw new AppError(404, 'Task not found');
 				}
 
-				if (role === 'VIEWER' && Object.keys(input).some((field) => field !== 'assigneeId')) {
-					throw new AppError(403, 'Viewers can only update the task assignee');
+				if (role === 'VIEWER' && Object.keys(input).some((field) => field !== 'notes' && field !== 'assigneeId')) {
+					throw new AppError(403, 'Viewers can only update task notes or assignee');
 				}
 
 				if (input.projectId) {

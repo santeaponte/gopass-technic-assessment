@@ -50,6 +50,7 @@ export type Task = {
 export type TaskFormValues = {
   title: string;
   description: string;
+  notes: string;
   priority: TaskPriority;
   dueDate: string;
   assigneeId: string;
