@@ -1,15 +1,20 @@
 import { useMemo, useState } from 'react';
 
 import type { Task } from '../../tasks/types';
-import { formatDate } from '../../../lib/date';
+import { formatDate, getProjectDisplayStatus } from '../../../lib/date';
 import type { Project } from '../types';
+
+const MAX_VISIBLE_PROJECTS_PER_DAY = 2;
 
 type CalendarEvent = {
   id: string;
   date: string;
   label: string;
-  detail: string;
-  footer: string;
+  statusLabel: string;
+  statusClassName: string;
+  priorityLabel: string;
+  priorityClassName: string;
+  ownerLabel: string;
   projectId: string;
 };
 
@@ -37,23 +42,6 @@ function getMonthDays(month: Date): Date[] {
   });
 }
 
-function labelForStatus(status: Project['status']): string {
-  switch (status) {
-    case 'ACTIVE':
-      return 'Activo';
-    case 'PAUSED':
-      return 'Pausado';
-    case 'IN_REVIEW':
-      return 'En revisión';
-    case 'COMPLETED':
-      return 'Completado';
-    case 'CANCELLED':
-      return 'Cancelado';
-    default:
-      return status;
-  }
-}
-
 function labelForPriority(priority: Project['priority']): string {
   switch (priority) {
     case 'HIGH':
@@ -75,19 +63,22 @@ export function ProjectCalendar({ projects, tasks, onOpenProject }: ProjectCalen
     projects
       .filter((project) => project.dueDate)
       .map((project) => {
-        const openTasks = tasks.filter((task) => task.projectId === project.id && task.status !== 'DONE');
-        const tasksSummary = openTasks.length === 0
-          ? 'Sin tareas abiertas'
-          : openTasks.length === 1
-            ? '1 tarea abierta'
-            : `${openTasks.length} tareas abiertas`;
+        const projectTasks = tasks.filter((task) => task.projectId === project.id);
+        const displayStatus = getProjectDisplayStatus(
+          project.status,
+          project.dueDate,
+          projectTasks.map((task) => task.status),
+        );
 
         return {
           id: `${project.id}-due`,
           date: project.dueDate!.slice(0, 10),
           label: project.name,
-          detail: `${labelForStatus(project.status)} · Prioridad ${labelForPriority(project.priority)}`,
-          footer: tasksSummary,
+          statusLabel: displayStatus.label,
+          statusClassName: displayStatus.className,
+          priorityLabel: labelForPriority(project.priority),
+          priorityClassName: project.priority.toLowerCase(),
+          ownerLabel: project.owner.name,
           projectId: project.id,
         };
       }),
@@ -98,6 +89,28 @@ export function ProjectCalendar({ projects, tasks, onOpenProject }: ProjectCalen
     return grouped;
   }, {}), [events]);
   const selectedEvents = selectedDate ? eventsByDate[selectedDate] ?? [] : [];
+
+  const renderProject = (event: CalendarEvent) => (
+    <button
+      type="button"
+      key={event.id}
+      className={`project-calendar-project project-status-${event.statusClassName}`}
+      onClick={() => {
+        setSelectedDate(null);
+        onOpenProject(event.projectId);
+      }}
+    >
+      <strong className="project-calendar-project-name">Proyecto: {event.label}</strong>
+      <span className={`project-status project-status-${event.statusClassName}`}>
+        {event.statusLabel}
+      </span>
+      <span className={`project-priority project-priority-${event.priorityClassName}`}>
+        Prioridad {event.priorityLabel}
+      </span>
+      <span>Propietario: {event.ownerLabel}</span>
+      <span>Entrega: {formatDate(event.date)}</span>
+    </button>
+  );
 
   return (
     <section className="project-calendar" aria-label="Calendario de proyectos">
@@ -115,46 +128,43 @@ export function ProjectCalendar({ projects, tasks, onOpenProject }: ProjectCalen
           const dayEvents = eventsByDate[key] ?? [];
           const isCurrentMonth = day.getMonth() === month.getMonth();
           return (
-            <button type="button" key={key} className={`project-calendar-day${isCurrentMonth ? '' : ' project-calendar-day-muted'}`} onClick={() => setSelectedDate(key)}>
-              <span>{day.getDate()}</span>
+            <div key={key} className={`project-calendar-day${isCurrentMonth ? '' : ' project-calendar-day-muted'}`}>
+              <span className="project-calendar-day-number">{day.getDate()}</span>
               {dayEvents.length > 0 && (
-                <span className="project-calendar-dots" aria-label={`${dayEvents.length} proyectos con entrega`}>
-                  {dayEvents.slice(0, 3).map((event) => <i key={event.id} className="project-calendar-dot" />)}
+                <span className="project-calendar-day-events" aria-label={`${dayEvents.length} proyectos con entrega`}>
+                  {dayEvents.slice(0, MAX_VISIBLE_PROJECTS_PER_DAY).map(renderProject)}
+                  {dayEvents.length > MAX_VISIBLE_PROJECTS_PER_DAY && (
+                    <button
+                      type="button"
+                      className="project-calendar-more"
+                      onClick={() => setSelectedDate(key)}
+                    >
+                      +{dayEvents.length - MAX_VISIBLE_PROJECTS_PER_DAY} proyectos
+                    </button>
+                  )}
                 </span>
               )}
-            </button>
+            </div>
           );
         })}
       </div>
       {selectedDate && (
         <div className="project-calendar-popup-backdrop" role="presentation" onMouseDown={() => setSelectedDate(null)}>
-          <section className="project-calendar-popup" role="dialog" aria-modal="true" aria-labelledby="calendar-events-title" onMouseDown={(event) => event.stopPropagation()}>
-            <button type="button" className="project-modal-close" onClick={() => setSelectedDate(null)} aria-label="Cerrar eventos">×</button>
-            <p className="projects-kicker">Entregas</p>
-            <h2 id="calendar-events-title">{formatDate(selectedDate)}</h2>
-            {selectedEvents.length === 0 ? <p className="empty-state">No hay entregas para este día.</p> : (
-              <ul className="project-calendar-events">
-                {selectedEvents.map((event) => (
-                  <li key={event.id}>
-                    <button
-                      type="button"
-                      className="project-calendar-event"
-                      onClick={() => {
-                        setSelectedDate(null);
-                        onOpenProject(event.projectId);
-                      }}
-                    >
-                      <span className="project-calendar-event-mark" />
-                      <span className="project-calendar-event-copy">
-                        <strong>{event.label}</strong>
-                        <small>{event.detail}</small>
-                        <em>{event.footer}</em>
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <section
+            className="project-calendar-popup"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="calendar-projects-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button type="button" className="project-modal-close" onClick={() => setSelectedDate(null)} aria-label="Cerrar proyectos">
+              ×
+            </button>
+            <p className="projects-kicker">Proyectos</p>
+            <h2 id="calendar-projects-title">{formatDate(selectedDate)}</h2>
+            <div className="project-calendar-popup-list">
+              {selectedEvents.map(renderProject)}
+            </div>
           </section>
         </div>
       )}

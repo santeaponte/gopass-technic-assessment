@@ -227,8 +227,12 @@ export function ProjectsPage() {
       <section className="projects-header">
         <div>
           <p className="projects-kicker">Proyectos</p>
-          <h1>Tu espacio</h1>
-          <p className="projects-intro">Elige un proyecto y continúa con lo que sigue.</p>
+          <h1>{sortOption === 'calendar' ? 'Calendario' : 'Tu espacio'}</h1>
+          <p className="projects-intro">
+            {sortOption === 'calendar'
+              ? 'Consulta las fechas de entrega de tus proyectos.'
+              : 'Elige un proyecto y continúa con lo que sigue.'}
+          </p>
         </div>
 
         <div className="page-header-actions">

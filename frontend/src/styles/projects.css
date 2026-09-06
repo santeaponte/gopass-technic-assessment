@@ -390,18 +390,16 @@
 .project-calendar-day {
   display: grid;
   align-content: start;
-  justify-items: center;
-  min-height: 6rem;
+  justify-items: stretch;
+  min-height: 10rem;
   border: 1px solid #edf2f3;
   padding: 0.7rem 0.55rem;
   color: #19343a;
   background: #fff;
-  font: inherit;
-  cursor: pointer;
+  text-align: left;
 }
 
-.project-calendar-day:hover,
-.project-calendar-day:focus-visible {
+.project-calendar-day:hover {
   position: relative;
   z-index: 1;
   outline: 2px solid #df6b3f;
@@ -413,22 +411,84 @@
   background: #f8fafb;
 }
 
-.project-calendar-dots {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.7rem;
-  align-items: center;
-  justify-content: center;
+.project-calendar-day-number {
+  display: block;
+  text-align: center;
 }
 
-.project-calendar-dot,
+.project-calendar-day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.project-calendar-project {
+  display: grid;
+  width: 100%;
+  gap: 0.25rem;
+  border-radius: 5px;
+  border: 0;
+  padding: 0.35rem 0;
+  background: transparent;
+  color: #607178;
+  font: inherit;
+  font-size: 0.65rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.project-calendar-project-name {
+  overflow: hidden;
+  color: #19343a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-calendar-project > span {
+  line-height: 1.25;
+}
+
+.project-calendar-more {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 5px;
+  padding: 0.55rem 0.4rem;
+  color: #607178;
+  background: #edf2f3;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+}
+
+.project-calendar-more:hover,
+.project-calendar-more:focus-visible {
+  color: #df6b3f;
+  background: #f7e5de;
+  outline: 2px solid #df6b3f;
+  outline-offset: 1px;
+}
+
+.project-calendar-popup-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
 .project-calendar-event-mark {
   display: inline-block;
   width: 0.6rem;
   height: 0.6rem;
+  margin-top: 0.35rem;
   border-radius: 50%;
   background: #df6b3f;
   box-shadow: 0 0 0 1px rgb(223 107 63 / 18%);
+  flex: 0 0 auto;
 }
 
 .project-calendar-popup-backdrop {
@@ -504,11 +564,6 @@
   color: #19343a;
 }
 
-.project-calendar-events small,
-.project-calendar-events em {
-  color: #607178;
-}
-
 .project-calendar-events em {
   color: #df6b3f;
   font-style: normal;
@@ -519,7 +574,14 @@
 
 .project-calendar-event-copy {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.35rem;
+}
+
+.project-calendar-event-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 .description-preview-text {
