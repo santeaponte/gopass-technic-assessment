@@ -16,7 +16,6 @@ type ProjectDetailModalProps = {
   project: Project;
   canManage: boolean;
   canCreateTask: boolean;
-  currentUserId: string;
   onClose: () => void;
   onEdit: (project: Project) => void;
   onStatusChange: (project: Project) => void;
@@ -40,7 +39,6 @@ export function ProjectDetailModal({
   project,
   canManage,
   canCreateTask,
-  currentUserId,
   onClose,
   onEdit,
   onStatusChange,
@@ -119,7 +117,7 @@ export function ProjectDetailModal({
     setTaskError('');
 
     try {
-      const updatedTask = await updateTask(selectedTask.id, project.id, values, !canManage);
+      const updatedTask = await updateTask(selectedTask.id, project.id, values);
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
@@ -137,7 +135,6 @@ export function ProjectDetailModal({
   const taskFormValues = (task: Task): TaskFormValues => ({
     title: task.title,
     description: task.description ?? '',
-    notes: task.notes ?? '',
     priority: task.priority,
     dueDate: task.dueDate?.slice(0, 10) ?? '',
     assigneeId: task.assignee?.id ?? '',
@@ -222,7 +219,7 @@ export function ProjectDetailModal({
                   }}
                 >
                   <div>
-                    <strong>{task.title}</strong>
+                    <strong className="project-task-title">{task.title}</strong>
                     <DescriptionPreview
                       description={task.description}
                       title={task.title}
@@ -340,17 +337,10 @@ export function ProjectDetailModal({
               title={selectedTask.title}
               className="project-task-detail-text"
             />
-            <p className="project-task-detail-label">Notas</p>
-            <DescriptionPreview
-              description={selectedTask.notes}
-              title={`Notas de ${selectedTask.title}`}
-              className="project-task-detail-text"
-              emptyLabel="Sin notas."
-            />
-            {project.status === 'ACTIVE' && (canManage || selectedTask.creator.id === currentUserId || selectedTask.assignee?.id === currentUserId) && (
+            {project.status === 'ACTIVE' && canManage && (
               <div className="project-task-detail-actions">
                 <button type="button" className="secondary-button" onClick={() => { setTaskError(''); setIsTaskEditFormOpen(true); }}>
-                  {canManage ? 'Editar' : 'Editar notas'}
+                  Editar
                 </button>
               </div>
             )}
@@ -377,7 +367,7 @@ export function ProjectDetailModal({
             <button type="button" className="project-modal-close" onClick={() => setIsTaskEditFormOpen(false)} aria-label="Cerrar edición de tarea">
               ×
             </button>
-            <h2 id="task-edit-title">{canManage ? 'Editar tarea' : 'Notas de la tarea'}</h2>
+            <h2 id="task-edit-title">Editar tarea</h2>
             {taskError && <p className="form-error" role="alert">{taskError}</p>}
             <TaskForm
               key={selectedTask.id}
@@ -387,7 +377,6 @@ export function ProjectDetailModal({
               onSubmit={handleEditTask}
               onCancel={() => setIsTaskEditFormOpen(false)}
               isSubmitting={isTaskSubmitting}
-              notesOnly={!canManage}
             />
           </div>
         </div>
@@ -455,7 +444,7 @@ export function ProjectDetailModal({
       {isDeleteWarningOpen && (
         <WarningModal
           title="¿Eliminar proyecto?"
-          message={`El proyecto "${project.name}" se eliminará permanentemente. Solo podrás eliminarlo si no tiene tareas asociadas.`}
+          message={`El proyecto "${project.name}" se eliminará permanentemente.`}
           confirmLabel="Eliminar proyecto"
           onCancel={() => setIsDeleteWarningOpen(false)}
           onConfirm={() => {

@@ -303,7 +303,6 @@ export function ProjectsPage() {
           project={selectedProject}
           canManage={isAdmin}
           canCreateTask={Boolean(user && selectedProject.status === 'ACTIVE')}
-          currentUserId={user?.id ?? ''}
           onClose={() => setSelectedProject(null)}
           onEdit={openEditForm}
           onStatusChange={handleModalStatusChange}

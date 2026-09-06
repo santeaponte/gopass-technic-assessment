@@ -18,7 +18,6 @@ import { SortControl, type SortOption } from '../../../components/SortControl';
 const emptyTaskValues: TaskFormValues = {
   title: '',
   description: '',
-  notes: '',
   priority: 'MEDIUM',
   dueDate: '',
   assigneeId: '',
@@ -28,7 +27,6 @@ function toFormValues(task: Task): TaskFormValues {
   return {
     title: task.title,
     description: task.description ?? '',
-    notes: task.notes ?? '',
     priority: task.priority,
     dueDate: task.dueDate ? task.dueDate.slice(0, 10) : '',
     assigneeId: task.assignee?.id ?? '',
@@ -176,12 +174,11 @@ export function TasksPage() {
       return;
     }
 
-    const notesOnly = !isAdmin;
     setIsSubmitting(true);
     setError('');
 
     try {
-      const updatedTask = await updateTask(editingTask.id, editingTask.projectId, values, notesOnly);
+      const updatedTask = await updateTask(editingTask.id, editingTask.projectId, values);
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
@@ -255,7 +252,7 @@ export function TasksPage() {
     setError('');
 
     try {
-      const updatedTask = await updateTask(task.id, task.projectId, values, !isAdmin);
+      const updatedTask = await updateTask(task.id, task.projectId, values);
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
@@ -406,7 +403,6 @@ export function TasksPage() {
               onSubmit={editingTask ? handleEdit : handleCreate}
               onCancel={closeForm}
               isSubmitting={isSubmitting}
-              notesOnly={Boolean(editingTask) && !isAdmin}
             />
           </div>
         </div>

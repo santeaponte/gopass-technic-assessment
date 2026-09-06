@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { ApiError } from '../../../lib/api/client';
 import { formatDate } from '../../../lib/date';
+import { DescriptionPreview } from '../../../components/DescriptionPreview';
 import { createTaskNote, getTaskNotes } from '../api';
 import type { TaskNote } from '../types';
 
@@ -54,8 +55,8 @@ export function TaskNotes({ taskId, canAdd }: TaskNotesProps) {
       <div className="task-notes-heading">
         <p className="task-detail-description-label">Notas</p>
         {canAdd && (
-          <button type="button" className="task-notes-add-button" onClick={() => setIsFormOpen((open) => !open)}>
-            + Agregar nota
+          <button type="button" className="primary-button task-notes-add-button" onClick={() => setIsFormOpen((open) => !open)}>
+            {isFormOpen ? 'Cerrar' : '+ Agregar nota'}
           </button>
         )}
       </div>
@@ -79,12 +80,19 @@ export function TaskNotes({ taskId, canAdd }: TaskNotesProps) {
       )}
       {error && <p className="form-error" role="alert">{error}</p>}
       {isLoading ? <p className="empty-state">Cargando notas...</p> : notes.length === 0 ? (
-        <p className="empty-state">Aún no hay notas.</p>
+        <div className="task-notes-empty">
+          <p className="task-notes-empty-title">Aún no hay notas</p>
+          <small>Agrega una nota para registrar avances, decisiones o pendientes.</small>
+        </div>
       ) : (
         <ul className="task-notes-list">
           {notes.map((note) => (
             <li key={note.id} className="task-note-item">
-              <p>{note.content}</p>
+              <DescriptionPreview
+                description={note.content}
+                title={`Nota de ${note.author.name}`}
+                className="task-note-content"
+              />
               <small>{note.author.name} · {formatDate(note.createdAt)}</small>
             </li>
           ))}

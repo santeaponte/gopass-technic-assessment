@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 
-import { taskIdSchema, taskSearchSchema, createTaskSchema, updateTaskSchema, changeTaskStatusSchema } from './schemas';
+import { taskIdSchema, taskSearchSchema, createTaskSchema, updateTaskSchema, changeTaskStatusSchema, createTaskNoteSchema } from './schemas';
 import { TaskService } from './service';
 
 export class TaskController {
@@ -67,5 +67,26 @@ export class TaskController {
 		}
 		await this.taskService.delete(id, user.userId, user.role);
 		response.status(204).send();
+	};
+
+	public findNotes = async (request: Request, response: Response): Promise<void> => {
+		const { id } = taskIdSchema.parse(request.params);
+		const user = request.user;
+		if (!user) {
+			response.status(401).json({ error: 'Authentication required' });
+			return;
+		}
+		response.status(200).json(await this.taskService.findNotes(id, user.userId, user.role));
+	};
+
+	public createNote = async (request: Request, response: Response): Promise<void> => {
+		const { id } = taskIdSchema.parse(request.params);
+		const input = createTaskNoteSchema.parse(request.body);
+		const user = request.user;
+		if (!user) {
+			response.status(401).json({ error: 'Authentication required' });
+			return;
+		}
+		response.status(201).json(await this.taskService.createNote(id, input, user.userId, user.role));
 	};
 }

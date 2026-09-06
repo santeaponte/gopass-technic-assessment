@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Task, TaskPriority, TaskStatus } from '../types';
 import type { TaskFormValues } from '../schemas';
 import { TaskForm } from './TaskForm';
+import { TaskNotes } from './TaskNotes';
 import { formatDate } from '../../../lib/date';
 import { DescriptionPreview } from '../../../components/DescriptionPreview';
 import { WarningModal } from '../../../components/WarningModal';
@@ -54,7 +55,7 @@ export function TaskDetailModal({
   const [isDeleteWarningOpen, setIsDeleteWarningOpen] = useState(false);
   const isProjectActive = task.project.status === 'ACTIVE';
   const canChangeStatus = isProjectActive && (isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId);
-  const canEditNotes = isProjectActive && (isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId);
+  const canAddNotes = isProjectActive && (isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId);
   const availableStatuses = editableStatuses;
 
   useEffect(() => {
@@ -151,18 +152,12 @@ export function TaskDetailModal({
         <p className="task-detail-description-label">Descripción</p>
         <DescriptionPreview description={task.description} title={task.title} className="task-detail-description" />
 
-        <p className="task-detail-description-label">Notas</p>
-        <DescriptionPreview
-          description={task.notes}
-          title={`Notas de ${task.title}`}
-          className="task-detail-description"
-          emptyLabel="Sin notas."
-        />
+        <TaskNotes taskId={task.id} canAdd={canAddNotes} />
 
         <div className="task-detail-actions">
-          {canEditNotes && (
+          {isAdmin && isProjectActive && (
             <button type="button" className="secondary-button" onClick={() => setIsEditOpen(true)}>
-              {isAdmin ? 'Editar' : 'Editar notas'}
+              Editar
             </button>
           )}
           {isAdmin && isProjectActive && (
@@ -193,13 +188,12 @@ export function TaskDetailModal({
       }}>
         <div className="task-create-modal" role="dialog" aria-modal="true" aria-labelledby="task-edit-title" onMouseDown={(event) => event.stopPropagation()}>
           <button type="button" className="project-modal-close" onClick={() => setIsEditOpen(false)} aria-label="Cerrar edición de tarea">×</button>
-          <h2 id="task-edit-title">{isAdmin ? 'Editar tarea' : 'Notas de la tarea'}</h2>
+          <h2 id="task-edit-title">Editar tarea</h2>
           {error && <p className="form-error" role="alert">{error}</p>}
           <TaskForm
             initialValues={{
               title: task.title,
               description: task.description ?? '',
-              notes: task.notes ?? '',
               priority: task.priority,
               dueDate: task.dueDate?.slice(0, 10) ?? '',
               assigneeId: task.assignee?.id ?? '',
@@ -212,7 +206,6 @@ export function TaskDetailModal({
             }}
             onCancel={() => setIsEditOpen(false)}
             isSubmitting={isSubmitting}
-            notesOnly={!isAdmin}
           />
         </div>
       </div>

@@ -1,4 +1,5 @@
 import type { Prisma, ProjectStatus, TaskPriority, TaskStatus, UserRole } from '@prisma/client';
+import { randomUUID } from 'node:crypto';
 
 import { prisma } from '../../shared/prisma';
 
@@ -8,6 +9,16 @@ const publicUserSelect = {
 	email: true,
 	role: true,
 	createdAt: true,
+} as const;
+
+const taskNoteSelect = {
+	id: true,
+	content: true,
+	taskId: true,
+	authorId: true,
+	createdAt: true,
+	updatedAt: true,
+	author: { select: { id: true, name: true, email: true } },
 } as const;
 
 const projectSelect = {
@@ -53,6 +64,7 @@ const taskSelect = {
 type DatabaseClient = typeof prisma | Prisma.TransactionClient;
 
 export type TaskRecord = Prisma.TaskGetPayload<{ select: typeof taskSelect }>;
+export type TaskNoteRecord = Prisma.TaskNoteGetPayload<{ select: typeof taskNoteSelect }>;
 export type CreateTaskData = {
 	title: string;
 	description?: string | null;
@@ -153,6 +165,21 @@ export class TaskRepository {
 
 	public delete(id: string): Promise<void> {
 		return this.database.task.delete({ where: { id } }).then(() => undefined);
+	}
+
+	public findNotes(taskId: string): Promise<TaskNoteRecord[]> {
+		return this.database.taskNote.findMany({
+			where: { taskId },
+			select: taskNoteSelect,
+			orderBy: { createdAt: 'asc' },
+		});
+	}
+
+	public createNote(taskId: string, authorId: string, content: string): Promise<TaskNoteRecord> {
+		return this.database.taskNote.create({
+			data: { id: randomUUID(), taskId, authorId, content },
+			select: taskNoteSelect,
+		});
 	}
 
 	public createStatusChange(data: {

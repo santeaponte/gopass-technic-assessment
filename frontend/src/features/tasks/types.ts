@@ -18,6 +18,20 @@ export type TaskStatusChange = {
   changedByUser: TaskUser;
 };
 
+export type TaskNote = {
+  id: string;
+  content: string;
+  taskId: string;
+  authorId: string;
+  createdAt: string;
+  updatedAt: string;
+  author: {
+    id: string;
+    name: string;
+    email: string;
+  };
+};
+
 export type TaskProject = {
   id: string;
   name: string;
@@ -35,7 +49,6 @@ export type Task = {
   description: string | null;
   status: TaskStatus;
   priority: TaskPriority;
-  notes: string | null;
   projectId: string;
   project: TaskProject;
   creator: TaskUser;
@@ -50,7 +63,6 @@ export type Task = {
 export type TaskFormValues = {
   title: string;
   description: string;
-  notes: string;
   priority: TaskPriority;
   dueDate: string;
   assigneeId: string;

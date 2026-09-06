@@ -39,7 +39,12 @@ export const changeTaskStatusSchema = z.object({
 	comment: z.string().trim().max(2000).nullable().optional(),
 }).strict();
 
+export const createTaskNoteSchema = z.object({
+	content: z.string().trim().min(1).max(5000),
+}).strict();
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type ChangeTaskStatusInput = z.infer<typeof changeTaskStatusSchema>;
+export type CreateTaskNoteInput = z.infer<typeof createTaskNoteSchema>;
 export type TaskStatusValue = z.infer<typeof taskStatusSchema>;
