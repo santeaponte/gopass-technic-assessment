@@ -48,7 +48,7 @@ Si `ADMIN_EMAIL` o `ADMIN_PASSWORD` no están definidas, el seed no hace nada.
 
 ```bash
 export ADMIN_EMAIL="admin@example.com"
-export ADMIN_PASSWORD="cambia-esto"
+export ADMIN_PASSWORD="Qwerty12"
 docker compose up --build -d
 docker compose exec -e ADMIN_EMAIL -e ADMIN_PASSWORD -e ADMIN_NAME backend npm run prisma:seed
 ```
