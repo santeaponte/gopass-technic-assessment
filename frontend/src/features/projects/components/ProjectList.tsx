@@ -5,6 +5,7 @@ import { formatDate, getProjectDisplayStatus } from '../../../lib/date';
 type ProjectListProps = {
   projects: Project[];
   onOpen: (project: Project) => void;
+  onCreate?: () => void;
 };
 
 const priorityLabels: Record<Project['priority'], string> = {
@@ -13,8 +14,8 @@ const priorityLabels: Record<Project['priority'], string> = {
   HIGH: 'Alta',
 };
 
-export function ProjectList({ projects, onOpen }: ProjectListProps) {
-  if (projects.length === 0) {
+export function ProjectList({ projects, onOpen, onCreate }: ProjectListProps) {
+  if (projects.length === 0 && !onCreate) {
     return <p className="empty-state">No hay proyectos para mostrar.</p>;
   }
 
@@ -52,6 +53,14 @@ export function ProjectList({ projects, onOpen }: ProjectListProps) {
 
         </li>
       ))}
+      {onCreate && (
+        <li className="project-item project-create-item">
+          <button type="button" className="project-create-tile" onClick={onCreate}>
+            <span className="project-create-tile-icon" aria-hidden="true">+</span>
+            <strong>Crear proyecto</strong>
+          </button>
+        </li>
+      )}
     </ul>
   );
 }

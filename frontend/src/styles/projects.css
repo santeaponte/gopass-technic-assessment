@@ -192,6 +192,55 @@
   box-shadow: 0 0.35rem 1rem rgb(25 52 58 / 5%);
 }
 
+.project-create-item {
+  min-height: 15rem;
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  background: #f8fafb;
+  box-shadow: 0 0.35rem 1rem rgb(25 52 58 / 5%);
+}
+
+.project-create-tile {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 1.25rem;
+  color: #19343a;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.project-create-tile:hover,
+.project-create-tile:focus-visible {
+  color: #df6b3f;
+  background: #edf2f3;
+  outline: 0;
+}
+
+.project-create-tile-icon {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  padding-bottom: 0.35rem;
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.project-create-tile strong {
+  color: inherit;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
 .project-main {
   display: grid;
   gap: 0.75rem;

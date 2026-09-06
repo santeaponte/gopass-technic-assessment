@@ -319,12 +319,11 @@ export function ProjectsPage() {
         />
       ) : loading ? (
         <p className="empty-state">Cargando proyectos...</p>
-      ) : projects.length === 0 ? (
-        <p className="empty-state">No hay proyectos para mostrar.</p>
       ) : (
         <ProjectList
           projects={projects}
           onOpen={setSelectedProject}
+          onCreate={isAdmin ? openCreateForm : undefined}
         />
       )}
 
