@@ -23,20 +23,33 @@ export function UserManagementModal({ currentUserId, onClose }: UserManagementMo
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loadUsers = async (): Promise<void> => {
-    try {
-      setUsers(await getUsers());
-      setError('');
-    } catch (requestError) {
-      console.error(requestError);
-      setError(requestError instanceof ApiError ? requestError.message : 'No pudimos cargar los usuarios.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    void loadUsers();
+    let isMounted = true;
+
+    getUsers()
+      .then((loadedUsers) => {
+        if (!isMounted) {
+          return;
+        }
+        setUsers(loadedUsers);
+        setError('');
+      })
+      .catch((requestError: unknown) => {
+        if (!isMounted) {
+          return;
+        }
+        console.error(requestError);
+        setError(requestError instanceof ApiError ? requestError.message : 'No pudimos cargar los usuarios.');
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleCreate = async (values: CreateUserValues): Promise<void> => {

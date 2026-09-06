@@ -61,3 +61,79 @@ npm install
 npx prisma migrate deploy
 npm run prisma:seed
 ```
+
+## Testing
+
+El backend usa Vitest para los tests unitarios y de integración HTTP. La suite
+incluye schemas, servicios, rutas Express reales y persistencia mediante Prisma
+contra PostgreSQL.
+
+### Requisitos
+
+- Node.js 20 o superior.
+- Docker Desktop con Compose habilitado.
+- Dependencias instaladas desde la raíz:
+
+```bash
+npm install
+```
+
+### Base de datos de testing
+
+Los tests de integración usan una base separada llamada `gopass_test`; nunca
+deben ejecutarse contra la base de desarrollo `gopass`.
+
+Inicia únicamente PostgreSQL con Docker Compose:
+
+```bash
+docker compose up -d postgres
+```
+
+Crea la configuración local de testing a partir de la plantilla:
+
+```bash
+cd backend
+cp .env.test.example .env.test
+```
+
+El archivo `.env.test` es local y está ignorado por Git. Su valor por defecto
+apunta al PostgreSQL expuesto por Docker en `localhost:5435`.
+
+Prepara la base y aplica las migraciones existentes:
+
+```bash
+npm run test:db:setup
+```
+
+Este comando crea `gopass_test` si todavía no existe y ejecuta las migraciones
+de Prisma sin modificar la base `gopass`.
+
+### Ejecutar las validaciones
+
+Desde `backend/`:
+
+```bash
+npm run test:unit
+npm run test:integration
+npm test
+npm run build
+npm run lint
+```
+
+`npm run test:unit` ejecuta únicamente schemas y servicios, sin cargar la
+configuración de integración ni requerir PostgreSQL. `npm run test:integration`
+ejecuta únicamente las pruebas HTTP y de persistencia real, usando
+`gopass_test`.
+
+`npm test` conserva la ejecución completa de ambas categorías. La suite de
+integración limpia las tablas de testing entre casos y se ejecuta sin
+paralelismo entre archivos porque comparte exclusivamente `gopass_test`. El
+test de base de datos valida explícitamente un flujo real de `INSERT` y
+`SELECT`.
+
+Para validar también el frontend, desde `frontend/`:
+
+```bash
+npm run lint
+npm run build
+```

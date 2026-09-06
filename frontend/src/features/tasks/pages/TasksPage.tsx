@@ -112,6 +112,8 @@ export function TasksPage() {
     }
     const task = tasks.find((item) => item.id === taskId);
     if (task) {
+      // The URL taskId opens the detail modal after the task list loads.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedTask(task);
     }
   }, [taskId, tasks]);
