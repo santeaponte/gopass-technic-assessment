@@ -1,0 +1,472 @@
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+}
+
+.app-shell::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  content: '';
+  background: url('../assets/images/Ave FR.png') right 10rem center / min(27rem, 42vw) no-repeat;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #d9e1e5;
+  padding: 1.25rem 2rem;
+}
+
+.app-brand {
+  height: 65px;
+  width: auto;
+  display: block;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+  margin-right: 1rem;
+}
+
+.app-nav-link {
+  border-bottom: 2px solid transparent;
+  padding: 0.45rem 0.65rem;
+  color: #607178;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-nav-link:hover,
+.app-nav-link:focus-visible,
+.app-nav-link-active {
+  border-bottom-color: #2dcd2b;
+  color: #3a2019;
+}
+
+.app-nav-link-disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.app-header-user-area {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.app-header-divider {
+  width: 1px;
+  height: 2.25rem;
+  background: #b8c7ca;
+}
+
+.create-user-header-button {
+  border: 0;
+  padding: 0.45rem 0;
+  color: #19343a;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.create-user-header-button:hover,
+.create-user-header-button:focus-visible {
+  color: #df6b3f;
+}
+
+.user-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 2px solid #b8c7ca;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem 0.45rem 0.45rem;
+  color: #19343a;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.user-menu-trigger:focus,
+.user-menu-logout:focus {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.user-avatar {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: #fff;
+  background: #1d0901;
+  font-size: 0.9rem;
+}
+
+.user-name {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: min(18rem, calc(100vw - 2rem));
+  border: 1px solid #d9e1e5;
+  background: #fff;
+  box-shadow: 0 0.75rem 2rem rgb(25 52 58 / 12%);
+}
+
+.user-menu-details {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem;
+}
+
+.user-menu-name {
+  color: #19343a;
+}
+
+.user-menu-email,
+.user-menu-role {
+  color: #607178;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.user-menu-role {
+  color: #df6b3f;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.user-menu-logout {
+  display: block;
+  width: auto;
+  border: 0;
+  border-radius: 7px;
+  margin: 0 1rem 1rem;
+  padding: 0.5rem 0.75rem;
+  color: #a23d32;
+  background: #f8e5e2;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.user-modal-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 38%);
+}
+
+.warning-modal-backdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 42%);
+}
+
+.warning-modal {
+  width: min(28rem, 100%);
+  border-radius: 12px;
+  padding: 2rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 25%);
+  text-align: center;
+}
+
+.warning-modal-icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  color: #fff;
+  background: #df6b3f;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.warning-modal h2 {
+  margin: 0;
+  color: #19343a;
+}
+
+.warning-modal p {
+  margin: 0.75rem 0 1.5rem;
+  color: #607178;
+  line-height: 1.5;
+}
+
+.warning-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.user-modal {
+  position: relative;
+  width: min(30rem, 100%);
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 2rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 20%);
+}
+
+.user-management-modal {
+  position: relative;
+  width: min(42rem, 100%);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 2.25rem 2rem 2rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 24%);
+}
+
+.user-management-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-right: 2.25rem;
+}
+
+.user-management-header h2 {
+  margin: 0;
+  color: #19343a;
+}
+
+.user-management-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.user-management-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+
+.user-management-item-inactive {
+  background: #f8fafb;
+  opacity: 0.75;
+}
+
+.user-management-item > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.user-management-item strong {
+  color: #19343a;
+}
+
+.user-management-item span,
+.user-management-item small {
+  color: #607178;
+  overflow-wrap: anywhere;
+}
+
+.user-management-item small {
+  font-weight: 700;
+}
+
+.user-meta-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.user-role {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.user-role-admin {
+  color: #b64b43;
+  background: #fff0ee;
+}
+
+.user-role-viewer {
+  color: #3f7fad;
+  background: #eef6fc;
+}
+
+.user-modal h2 {
+  margin: 0 0 1.25rem;
+  color: #19343a;
+}
+
+.user-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.9rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  line-height: 1;
+  border: 0;
+  color: #607178;
+  background: transparent;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
+
+.user-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.user-form-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.user-form-field label {
+  color: #19343a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.user-form-field input {
+  min-height: 2.75rem;
+  border: 1px solid #b8c7ca;
+  border-radius: 7px;
+  padding: 0.7rem 0.8rem;
+  color: #19343a;
+  font: inherit;
+}
+
+.user-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.user-form-label {
+  color: #19343a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.user-role-options {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.user-role-choice {
+  flex: 1;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.user-role-choice:hover {
+  transform: translateY(-1px);
+}
+
+.user-role-choice:focus-visible {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.user-role-choice-viewer {
+  border-color: #3f7fad;
+  color: #fff;
+  background: #3f7fad;
+}
+
+.user-role-choice-viewer.user-role-choice-selected {
+  outline: 3px solid #3f7fad;
+  outline-offset: 2px;
+}
+
+.user-role-choice-admin {
+  border-color: #b64b43;
+  color: #fff;
+  background: #b64b43;
+}
+
+.user-role-choice-admin.user-role-choice-selected {
+  outline: 3px solid #b64b43;
+  outline-offset: 2px;
+}
+
+.app-content {
+  margin: 24px auto;
+  max-width: 72rem;
+  padding: 3rem 2rem;
+}
+
+.app-content:has(.projects-page, .tasks-page) {
+  width: 100%;
+  min-height: calc(100svh - 24px);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-page {
+  width: min(72rem, 100%);
+  min-height: 10svh;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 3rem;
+}

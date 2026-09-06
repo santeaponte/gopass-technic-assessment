@@ -1,0 +1,522 @@
+openapi: 3.0.3
+info:
+  title: Gopass API
+  version: 1.0.0
+  description: API documentation for Gopass.
+servers:
+  - url: http://localhost:4000
+    description: Local development server
+tags:
+  - name: Health
+  - name: Auth
+  - name: Users
+  - name: Projects
+  - name: Tasks
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Check API health
+      responses:
+        '200':
+          description: API is available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a viewer account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /users:
+    get:
+      tags: [Users]
+      security: [{ bearerAuth: [] }]
+      summary: List users
+      description: Requires the ADMIN role.
+      responses:
+        '200':
+          description: Users returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Users]
+      security: [{ bearerAuth: [] }]
+      summary: Create a user account
+      description: Requires the ADMIN role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserInput'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /users/{id}:
+    get:
+      tags: [Users]
+      security: [{ bearerAuth: [] }]
+      summary: Get a user by ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: User returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /projects:
+    get:
+      tags: [Projects]
+      security: [{ bearerAuth: [] }]
+      summary: List projects
+      parameters:
+        - $ref: '#/components/parameters/Search'
+      responses:
+        '200':
+          description: Projects returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Projects]
+      security: [{ bearerAuth: [] }]
+      summary: Create a project
+      description: Requires the ADMIN role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectInput'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /projects/{id}:
+    get:
+      tags: [Projects]
+      security: [{ bearerAuth: [] }]
+      summary: Get a project by ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Project returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Projects]
+      security: [{ bearerAuth: [] }]
+      summary: Update a project
+      description: Requires the ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectInput'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Projects]
+      security: [{ bearerAuth: [] }]
+      summary: Delete a project
+      description: Requires the ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Project deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tasks:
+    get:
+      tags: [Tasks]
+      security: [{ bearerAuth: [] }]
+      summary: List tasks
+      parameters:
+        - $ref: '#/components/parameters/Search'
+        - name: projectId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tasks returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Tasks]
+      security: [{ bearerAuth: [] }]
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskInput'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tasks/{id}:
+    get:
+      tags: [Tasks]
+      security: [{ bearerAuth: [] }]
+      summary: Get a task by ID
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Task returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Tasks]
+      security: [{ bearerAuth: [] }]
+      summary: Update a task
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskInput'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Tasks]
+      security: [{ bearerAuth: [] }]
+      summary: Delete a task
+      description: Requires the ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Task deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tasks/{id}/status:
+    patch:
+      tags: [Tasks]
+      security: [{ bearerAuth: [] }]
+      summary: Change a task status
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeTaskStatusInput'
+      responses:
+        '200':
+          description: Task status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Search:
+      name: search
+      in: query
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 200
+  responses:
+    Unauthorized:
+      description: Authentication required or credentials are invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+      required: [status]
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [ADMIN, VIEWER] }
+        createdAt: { type: string, format: date-time }
+      required: [id, name, email, role, createdAt]
+    RegisterInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, maxLength: 128, format: password }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+    CreateUserInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, maxLength: 128, format: password }
+        role: { type: string, enum: [ADMIN, VIEWER], default: VIEWER }
+    AuthResponse:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        token: { type: string }
+      required: [user, token]
+    Project:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        status: { type: string, enum: [ACTIVE, PAUSED, IN_REVIEW, COMPLETED, CANCELLED] }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        startDate: { type: string, format: date, nullable: true }
+        dueDate: { type: string, format: date, nullable: true }
+        owner: { $ref: '#/components/schemas/User' }
+      required: [id, name, status, priority, createdAt, updatedAt, owner]
+    CreateProjectInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string }
+        status: { type: string, enum: [ACTIVE, PAUSED, IN_REVIEW, COMPLETED, CANCELLED] }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        startDate: { type: string, format: date-time }
+        dueDate: { type: string, format: date-time }
+    UpdateProjectInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string }
+        status: { type: string, enum: [ACTIVE, PAUSED, IN_REVIEW, COMPLETED, CANCELLED] }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        startDate: { type: string, format: date-time }
+        dueDate: { type: string, format: date-time }
+    Task:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        status: { type: string, enum: [PENDING, IN_PROGRESS, IN_REVIEW, DONE] }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        projectId: { type: string, format: uuid }
+        project: { $ref: '#/components/schemas/Project' }
+        creator: { $ref: '#/components/schemas/User' }
+        assignee: { allOf: [{ $ref: '#/components/schemas/User' }], nullable: true }
+        archivedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        dueDate: { type: string, format: date, nullable: true }
+      required: [id, title, status, priority, projectId, project, creator, createdAt, updatedAt]
+    CreateTaskInput:
+      type: object
+      required: [title, projectId]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, nullable: true }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        projectId: { type: string, format: uuid }
+        dueDate: { type: string, format: date-time, nullable: true }
+        assigneeId: { type: string, format: uuid, nullable: true }
+    UpdateTaskInput:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, nullable: true }
+        priority: { type: string, enum: [LOW, MEDIUM, HIGH] }
+        projectId: { type: string, format: uuid }
+        creatorId: { type: string, format: uuid }
+        dueDate: { type: string, format: date-time, nullable: true }
+        assigneeId: { type: string, format: uuid, nullable: true }
+    ChangeTaskStatusInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [PENDING, IN_PROGRESS, IN_REVIEW, DONE] }
+        comment: { type: string, maxLength: 2000, nullable: true }

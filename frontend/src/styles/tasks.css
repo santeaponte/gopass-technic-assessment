@@ -1,0 +1,138 @@
+.tasks-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.back-link {
+  width: fit-content;
+  margin-bottom: -0.75rem;
+  color: #607178;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+  color: #df6b3f;
+}
+
+.tasks-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tasks-kicker {
+  margin: 0 0 0.5rem;
+  color: #df6b3f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tasks-header h1 {
+  margin: 0;
+  color: #19343a;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.tasks-intro {
+  max-width: 42rem;
+  margin: 0.75rem 0 0;
+  color: #607178;
+}
+
+.tasks-search {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.tasks-search input,
+.task-form-field input,
+.task-form-field textarea,
+.task-form-field select {
+  min-height: 2.75rem;
+  border: 1px solid #b8c7ca;
+  border-radius: 7px;
+  padding: 0.8rem 0.9rem;
+  color: #19343a;
+  background: #fff;
+  font: inherit;
+}
+
+.tasks-search input {
+  flex: 1;
+  border: 0;
+  padding: 0.8rem 0.65rem;
+  outline: 0;
+}
+
+.task-form-field input:focus,
+.task-form-field textarea:focus,
+.task-form-field select:focus {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.task-panel {
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 1.25rem;
+  background: #fff;
+}
+
+.inactive-project-message {
+  margin: 2rem 0;
+  color: #607178;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.search-field:focus-within {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.task-panel h2 {
+  margin: 0 0 1rem;
+  color: #19343a;
+  font-size: 1.3rem;
+}
+
+.task-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.task-form-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.task-form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.task-form-field label {
+  color: #19343a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.task-form-field textarea {
+  resize: vertical;
+  min-height: 7rem;
+}
+
+.task-form-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

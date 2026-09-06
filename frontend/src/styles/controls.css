@@ -1,0 +1,153 @@
+.project-form-field input,
+.project-form-field textarea,
+.project-form-field select {
+  width: 100%;
+  border: 1px solid #b8c7ca;
+  border-radius: 7px;
+  padding: 0.8rem 0.9rem;
+  background: #fff;
+  color: #19343a;
+  font: inherit;
+}
+
+.project-form-field select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #607178 50%),
+    linear-gradient(135deg, #607178 50%, transparent 50%);
+  background-position: calc(100% - 1rem) 50%, calc(100% - 0.7rem) 50%;
+  background-repeat: no-repeat;
+  background-size: 0.35rem 0.35rem, 0.35rem 0.35rem;
+  cursor: pointer;
+}
+
+.project-form-field textarea {
+  resize: vertical;
+  min-height: 7rem;
+}
+
+.project-form-label {
+  color: #19343a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.project-priority-options {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.project-priority-choice {
+  flex: 1;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.project-priority-choice:hover {
+  transform: translateY(-1px);
+}
+
+.project-priority-choice:focus-visible {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.project-priority-choice-low {
+  border-color: #4f91c5;
+  color: #fff;
+  background: #4f91c5;
+}
+
+.project-priority-choice-low.project-priority-choice-selected {
+  outline: 3px solid #4f91c5;
+  outline-offset: 2px;
+}
+
+.project-priority-choice-medium {
+  border-color: #d1a94c;
+  color: #fff;
+  background: #d1a94c;
+}
+
+.project-priority-choice-medium.project-priority-choice-selected {
+  outline: 3px solid #d1a94c;
+  outline-offset: 2px;
+}
+
+.project-priority-choice-high {
+  border-color: #c65b52;
+  color: #fff;
+  background: #c65b52;
+}
+
+.project-priority-choice-high.project-priority-choice-selected {
+  outline: 3px solid #c65b52;
+  outline-offset: 2px;
+}
+
+.project-form-field input:focus,
+.project-form-field textarea:focus,
+.project-form-field select:focus {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.project-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+  border: 0;
+  border-radius: 7px;
+  padding: 0.8rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: #19343a;
+  color: #fff;
+}
+
+.secondary-button {
+  background: #edf2f3;
+  color: #19343a;
+}
+
+.danger-button {
+  background: #a23d32;
+  color: #fff;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.danger-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.empty-state,
+.form-error,
+.field-error {
+  margin: 0;
+  color: #607178;
+}
+
+.form-error {
+  color: #a23d32;
+}
+
+.field-error {
+  color: #a23d32;
+  font-size: 0.9rem;
+}
