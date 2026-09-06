@@ -5,6 +5,22 @@
 Aplicación full stack para gestionar proyectos y tareas con autenticación,
 roles, estados, prioridades, historial y notas.
 
+## Alcance de la prueba técnica
+
+Esta solución implementa una aplicación de gestión de tareas organizada por
+proyectos. Permite:
+
+- Autenticar usuarios y aplicar permisos por rol (`ADMIN` y `VIEWER`).
+- Crear, consultar, actualizar y eliminar proyectos.
+- Asociar tareas a proyectos activos.
+- Gestionar estados, prioridades y asignaciones.
+- Registrar historial de cambios de estado.
+- Crear y consultar notas de tareas.
+- Persistir la información en PostgreSQL mediante Prisma.
+
+El frontend React consume la API REST del backend Express y presenta los
+proyectos y sus tareas de forma interactiva.
+
 ## Stack y arquitectura
 
 - **Frontend:** React 18, TypeScript, Vite.
@@ -18,6 +34,18 @@ El backend está organizado por módulos de dominio (`auth`, `users`,
 `projects` y `tasks`). Cada módulo separa rutas, controllers, services,
 repositories y schemas. La aplicación Express se exporta separada del
 listener HTTP para facilitar las pruebas de integración.
+
+## Recursos de entrega
+
+- **Aplicación:** disponible localmente mediante Docker Compose.
+- **API:** `http://localhost:4000`.
+- **Frontend:** `http://localhost:8080`.
+- **Documentación API:** `http://localhost:4000/api-docs`.
+- **Repositorio:** código fuente, migraciones, tests y workflow CI incluidos.
+
+La ejecución reproducible está documentada en este README. La validación
+automática se ejecuta mediante GitHub Actions en cada `push` y
+`pull_request`.
 
 ## Ejecutar todo con Docker
 
