@@ -8,24 +8,30 @@ const allowedTransitions: Record<TaskStatus, Partial<Record<TaskStatus, UserRole
 	PENDING: {
 		IN_PROGRESS: ['ADMIN', 'VIEWER'],
 		IN_REVIEW: ['ADMIN', 'VIEWER'],
+		DONE: ['ADMIN'],
 	},
 	IN_PROGRESS: {
 		PENDING: ['ADMIN', 'VIEWER'],
 		IN_REVIEW: ['ADMIN', 'VIEWER'],
+		DONE: ['ADMIN'],
 	},
 	IN_REVIEW: {
 		DONE: ['ADMIN'],
 		IN_PROGRESS: ['ADMIN', 'VIEWER'],
 		PENDING: ['ADMIN', 'VIEWER'],
 	},
-	DONE: {},
+	DONE: {
+		PENDING: ['ADMIN'],
+		IN_PROGRESS: ['ADMIN'],
+		IN_REVIEW: ['ADMIN'],
+	},
 };
 
 const validNextStatuses: Record<TaskStatus, TaskStatus[]> = {
-	PENDING: ['IN_PROGRESS', 'IN_REVIEW'],
-	IN_PROGRESS: ['PENDING', 'IN_REVIEW'],
+	PENDING: ['IN_PROGRESS', 'IN_REVIEW', 'DONE'],
+	IN_PROGRESS: ['PENDING', 'IN_REVIEW', 'DONE'],
 	IN_REVIEW: ['DONE', 'IN_PROGRESS', 'PENDING'],
-	DONE: [],
+	DONE: ['PENDING', 'IN_PROGRESS', 'IN_REVIEW'],
 };
 
 export class TaskService {
@@ -101,8 +107,8 @@ export class TaskService {
 				throw new AppError(409, 'Invalid task status transition');
 			}
 
-			if (role === 'VIEWER' && currentTask.assigneeId !== changedBy) {
-				throw new AppError(403, 'Only the assigned viewer can change this task status');
+			if (role === 'VIEWER' && currentTask.creatorId !== changedBy && currentTask.assigneeId !== changedBy) {
+				throw new AppError(403, 'Only the task creator or assignee can change this task status');
 			}
 
 			const permittedRoles = allowedTransitions[currentTask.status][input.status] ?? [];

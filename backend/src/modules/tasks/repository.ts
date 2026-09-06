@@ -163,10 +163,10 @@ export class TaskRepository {
 		return this.database.taskStatusChange.create({ data }).then(() => undefined);
 	}
 
-	public async getCurrentStatus(id: string): Promise<{ status: TaskStatus; assigneeId: string | null } | null> {
+	public async getCurrentStatus(id: string): Promise<{ status: TaskStatus; creatorId: string; assigneeId: string | null } | null> {
 		return this.database.task.findFirst({
 			where: { id, archivedAt: null },
-			select: { status: true, assigneeId: true },
+			select: { status: true, creatorId: true, assigneeId: true },
 		});
 	}
 }
