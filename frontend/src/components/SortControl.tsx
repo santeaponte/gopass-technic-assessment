@@ -1,5 +1,11 @@
 export type SortOption = '' | 'dueDate' | 'priority' | 'createdAt';
 
+const sortOptions: SortOption[] = ['', 'dueDate', 'priority', 'createdAt'];
+
+function isSortOption(value: string): value is SortOption {
+  return sortOptions.includes(value as SortOption);
+}
+
 type SortControlProps = {
   value: SortOption;
   onChange: (value: SortOption) => void;
@@ -12,7 +18,12 @@ export function SortControl({ value, onChange, label = 'Ordenar por' }: SortCont
       <span className="sort-control-icon" aria-hidden="true">↕</span>
       <select
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => {
+          const nextValue = event.target.value;
+          if (isSortOption(nextValue)) {
+            onChange(nextValue);
+          }
+        }}
         aria-label={label}
       >
         <option value="">{label}</option>
