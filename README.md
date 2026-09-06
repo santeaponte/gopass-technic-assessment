@@ -1,6 +1,23 @@
 # gopass-technic-assessment
 
-[![CI](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml/badge.svg?branch=feature/testing)](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml)
+[![CI](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/santeaponte/gopass-technic-assessment/actions/workflows/ci.yml)
+
+Aplicación full stack para gestionar proyectos y tareas con autenticación,
+roles, estados, prioridades, historial y notas.
+
+## Stack y arquitectura
+
+- **Frontend:** React 18, TypeScript, Vite.
+- **Backend:** Node.js, Express, TypeScript.
+- **Persistencia:** PostgreSQL y Prisma.
+- **Validación:** schemas Zod.
+- **Testing:** Vitest, Supertest e integración con PostgreSQL.
+- **CI:** GitHub Actions para tests, build y lint.
+
+El backend está organizado por módulos de dominio (`auth`, `users`,
+`projects` y `tasks`). Cada módulo separa rutas, controllers, services,
+repositories y schemas. La aplicación Express se exporta separada del
+listener HTTP para facilitar las pruebas de integración.
 
 ## Ejecutar todo con Docker
 
@@ -64,7 +81,7 @@ npx prisma migrate deploy
 npm run prisma:seed
 ```
 
-## Testing
+## Testing y calidad
 
 El backend usa Vitest para los tests unitarios y de integración HTTP. La suite
 incluye schemas, servicios, rutas Express reales y persistencia mediante Prisma
@@ -139,3 +156,30 @@ Para validar también el frontend, desde `frontend/`:
 npm run lint
 npm run build
 ```
+
+### Cobertura
+
+La cobertura se puede consultar localmente con:
+
+```bash
+cd backend
+npx vitest run --coverage
+```
+
+La métrica debe interpretarse junto con el alcance de los tests: los módulos
+principales priorizados incluyen Auth, Projects y Tasks, además de sus flujos
+HTTP y persistencia. Las áreas con cobertura menor quedan identificadas como
+trabajo pendiente, en lugar de añadir tests artificiales solo para elevar el
+porcentaje.
+
+## Integración continua
+
+El workflow de GitHub Actions se ejecuta en cada `push` y `pull_request`. Valida:
+
+- Generación del cliente Prisma.
+- Creación y migración de la base `gopass_test`.
+- Tests unitarios e integración HTTP.
+- Build y lint del backend.
+- Build y lint del frontend.
+
+El workflow está definido en `.github/workflows/ci.yml`.
