@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { AppError } from '../../shared/errors';
 import { hashPassword } from '../../shared/password';
 import { UserRepository } from './repository';
-import type { CreateViewerInput } from './schemas';
+import type { CreateUserInput } from './schemas';
 
 export class UserService {
 	public constructor(private readonly userRepository: UserRepository) {}
@@ -12,13 +12,14 @@ export class UserService {
 		return this.userRepository.findAll();
 	}
 
-	public async createViewer(input: CreateViewerInput) {
+	public async createUser(input: CreateUserInput) {
 		try {
 			const passwordHash = await hashPassword(input.password);
-			const user = await this.userRepository.createViewer({
+			const user = await this.userRepository.createUser({
 				name: input.name,
 				email: input.email,
 				passwordHash,
+				role: input.role,
 			});
 
 			return {

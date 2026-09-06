@@ -27,12 +27,9 @@ export class UserRepository {
 		});
 	}
 
-	public createViewer(data: { name: string; email: string; passwordHash: string }): Promise<UserRecord> {
+	public createUser(data: { name: string; email: string; passwordHash: string; role: UserRole }): Promise<UserRecord> {
 		return prisma.user.create({
-			data: {
-				...data,
-				role: 'VIEWER' satisfies UserRole,
-			},
+			data,
 			select: authUserSelect,
 		});
 	}

@@ -13,6 +13,6 @@ const userController = new UserController(userService);
 export const usersRouter = Router();
 
 usersRouter.get('/', authenticate, authorize('ADMIN'), userController.findAll);
-usersRouter.post('/', authenticate, authorize('ADMIN'), userController.createViewer);
+usersRouter.post('/', authenticate, authorize('ADMIN'), userController.createUser);
 usersRouter.patch('/:id/status', authenticate, authorize('ADMIN'), userController.updateStatus);
 usersRouter.get('/:id', authenticate, userController.findById);

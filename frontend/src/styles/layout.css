@@ -316,6 +316,34 @@
   font-weight: 700;
 }
 
+.user-meta-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.user-role {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.user-role-admin {
+  color: #b64b43;
+  background: #fff0ee;
+}
+
+.user-role-viewer {
+  color: #3f7fad;
+  background: #eef6fc;
+}
+
 .user-modal h2 {
   margin: 0 0 1.25rem;
   color: #19343a;
@@ -366,6 +394,60 @@
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 0.5rem;
+}
+
+.user-form-label {
+  color: #19343a;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.user-role-options {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.user-role-choice {
+  flex: 1;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 0.7rem 0.8rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.user-role-choice:hover {
+  transform: translateY(-1px);
+}
+
+.user-role-choice:focus-visible {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.user-role-choice-viewer {
+  border-color: #3f7fad;
+  color: #fff;
+  background: #3f7fad;
+}
+
+.user-role-choice-viewer.user-role-choice-selected {
+  outline: 3px solid #3f7fad;
+  outline-offset: 2px;
+}
+
+.user-role-choice-admin {
+  border-color: #b64b43;
+  color: #fff;
+  background: #b64b43;
+}
+
+.user-role-choice-admin.user-role-choice-selected {
+  outline: 3px solid #b64b43;
+  outline-offset: 2px;
 }
 
 .app-content {

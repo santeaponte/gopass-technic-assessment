@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react';
 
 import { ApiError } from '../../../lib/api/client';
 import type { PublicUser } from '../../auth/types';
-import { createViewer, getUsers, updateUserStatus } from '../api';
-import type { CreateViewerValues } from '../schemas';
+import { createUser, getUsers, updateUserStatus } from '../api';
+import type { CreateUserValues } from '../schemas';
 import { UserForm } from './UserForm';
 
 type UserManagementModalProps = {
   currentUserId: string;
   onClose: () => void;
+};
+
+const roleLabels: Record<PublicUser['role'], string> = {
+  ADMIN: 'Administrador',
+  VIEWER: 'Usuario',
 };
 
 export function UserManagementModal({ currentUserId, onClose }: UserManagementModalProps) {
@@ -34,11 +39,11 @@ export function UserManagementModal({ currentUserId, onClose }: UserManagementMo
     void loadUsers();
   }, []);
 
-  const handleCreate = async (values: CreateViewerValues): Promise<void> => {
+  const handleCreate = async (values: CreateUserValues): Promise<void> => {
     setIsSubmitting(true);
     setError('');
     try {
-      const createdUser = await createViewer(values);
+      const createdUser = await createUser(values);
       setUsers((currentUsers) => [...currentUsers, createdUser]);
       setIsCreating(false);
     } catch (requestError) {
@@ -86,7 +91,12 @@ export function UserManagementModal({ currentUserId, onClose }: UserManagementMo
                 <div>
                   <strong>{user.name}</strong>
                   <span>{user.email}</span>
-                  <small>{user.role} · {user.isActive ? 'Activo' : 'Inactivo'}</small>
+                  <span className="user-meta-secondary">
+                    <span className={`user-role user-role-${user.role.toLowerCase()}`}>
+                      {roleLabels[user.role]}
+                    </span>
+                    <small>{user.isActive ? 'Activo' : 'Inactivo'}</small>
+                  </span>
                 </div>
                 <button
                   type="button"

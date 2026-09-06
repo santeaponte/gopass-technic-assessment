@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 
-import { createViewerSchema, updateUserStatusSchema, userIdSchema } from './schemas';
+import { createUserSchema, updateUserStatusSchema, userIdSchema } from './schemas';
 import { UserService } from './service';
 
 export class UserController {
@@ -11,9 +11,9 @@ export class UserController {
 		response.status(200).json(users);
 	};
 
-	public createViewer = async (request: Request, response: Response): Promise<void> => {
-		const input = createViewerSchema.parse(request.body);
-		const user = await this.userService.createViewer(input);
+	public createUser = async (request: Request, response: Response): Promise<void> => {
+		const input = createUserSchema.parse(request.body);
+		const user = await this.userService.createUser(input);
 		response.status(201).json(user);
 	};
 

@@ -14,10 +14,11 @@ export class AuthService {
 		const passwordHash = await hashPassword(input.password);
 
 		try {
-			const user = await this.userRepository.createViewer({
+			const user = await this.userRepository.createUser({
 				name: input.name,
 				email: input.email,
 				passwordHash,
+				role: 'VIEWER',
 			});
 
 			return this.toAuthResponse(user);
