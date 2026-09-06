@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import type { Task } from '../../tasks/types';
 import { formatDate } from '../../../lib/date';
@@ -10,9 +9,8 @@ type CalendarEvent = {
   date: string;
   label: string;
   detail: string;
-  kind: 'project' | 'task';
+  footer: string;
   projectId: string;
-  taskId?: string;
 };
 
 type ProjectCalendarProps = {
@@ -39,26 +37,62 @@ function getMonthDays(month: Date): Date[] {
   });
 }
 
+function labelForStatus(status: Project['status']): string {
+  switch (status) {
+    case 'ACTIVE':
+      return 'Activo';
+    case 'PAUSED':
+      return 'Pausado';
+    case 'IN_REVIEW':
+      return 'En revisión';
+    case 'COMPLETED':
+      return 'Completado';
+    case 'CANCELLED':
+      return 'Cancelado';
+    default:
+      return status;
+  }
+}
+
+function labelForPriority(priority: Project['priority']): string {
+  switch (priority) {
+    case 'HIGH':
+      return 'Alta';
+    case 'MEDIUM':
+      return 'Media';
+    case 'LOW':
+      return 'Baja';
+    default:
+      return priority;
+  }
+}
+
 export function ProjectCalendar({ projects, tasks, onOpenProject }: ProjectCalendarProps) {
-  const navigate = useNavigate();
   const [month, setMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const days = useMemo(() => getMonthDays(month), [month]);
-  const events = useMemo<CalendarEvent[]>(() => [
-    ...projects.flatMap((project) => [
-      ...(project.startDate ? [{ id: `${project.id}-start`, date: project.startDate.slice(0, 10), label: project.name, detail: 'Inicio del proyecto', kind: 'project' as const, projectId: project.id }] : []),
-      ...(project.dueDate ? [{ id: `${project.id}-due`, date: project.dueDate.slice(0, 10), label: project.name, detail: 'Entrega del proyecto', kind: 'project' as const, projectId: project.id }] : []),
-    ]),
-    ...tasks.flatMap((task) => task.dueDate ? [{
-      id: task.id,
-      date: task.dueDate.slice(0, 10),
-      label: task.title,
-      detail: `Tarea · ${task.project.name}`,
-      kind: 'task' as const,
-      projectId: task.projectId,
-      taskId: task.id,
-    }] : []),
-  ], [projects, tasks]);
+  const events = useMemo<CalendarEvent[]>(() =>
+    projects
+      .filter((project) => project.dueDate)
+      .map((project) => {
+        const openTasks = tasks.filter((task) => task.projectId === project.id && task.status !== 'DONE');
+        const tasksSummary = openTasks.length === 0
+          ? 'Sin tareas abiertas'
+          : openTasks.length === 1
+            ? '1 tarea abierta'
+            : `${openTasks.length} tareas abiertas`;
+
+        return {
+          id: `${project.id}-due`,
+          date: project.dueDate!.slice(0, 10),
+          label: project.name,
+          detail: `${labelForStatus(project.status)} · Prioridad ${labelForPriority(project.priority)}`,
+          footer: tasksSummary,
+          projectId: project.id,
+        };
+      }),
+    [projects, tasks],
+  );
   const eventsByDate = useMemo(() => events.reduce<Record<string, CalendarEvent[]>>((grouped, event) => {
     grouped[event.date] = [...(grouped[event.date] ?? []), event];
     return grouped;
@@ -66,7 +100,7 @@ export function ProjectCalendar({ projects, tasks, onOpenProject }: ProjectCalen
   const selectedEvents = selectedDate ? eventsByDate[selectedDate] ?? [] : [];
 
   return (
-    <section className="project-calendar" aria-label="Calendario de proyectos y tareas">
+    <section className="project-calendar" aria-label="Calendario de proyectos">
       <header className="project-calendar-header">
         <button type="button" className="secondary-button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} aria-label="Mes anterior">←</button>
         <h2>{new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' }).format(month)}</h2>
@@ -83,7 +117,11 @@ export function ProjectCalendar({ projects, tasks, onOpenProject }: ProjectCalen
           return (
             <button type="button" key={key} className={`project-calendar-day${isCurrentMonth ? '' : ' project-calendar-day-muted'}`} onClick={() => setSelectedDate(key)}>
               <span>{day.getDate()}</span>
-              {dayEvents.length > 0 && <span className="project-calendar-dots" aria-label={`${dayEvents.length} eventos`}>{dayEvents.slice(0, 3).map((event) => <i key={event.id} className={`project-calendar-dot project-calendar-dot-${event.kind}`} />)}</span>}
+              {dayEvents.length > 0 && (
+                <span className="project-calendar-dots" aria-label={`${dayEvents.length} proyectos con entrega`}>
+                  {dayEvents.slice(0, 3).map((event) => <i key={event.id} className="project-calendar-dot" />)}
+                </span>
+              )}
             </button>
           );
         })}
@@ -92,9 +130,9 @@ export function ProjectCalendar({ projects, tasks, onOpenProject }: ProjectCalen
         <div className="project-calendar-popup-backdrop" role="presentation" onMouseDown={() => setSelectedDate(null)}>
           <section className="project-calendar-popup" role="dialog" aria-modal="true" aria-labelledby="calendar-events-title" onMouseDown={(event) => event.stopPropagation()}>
             <button type="button" className="project-modal-close" onClick={() => setSelectedDate(null)} aria-label="Cerrar eventos">×</button>
-            <p className="projects-kicker">Agenda</p>
+            <p className="projects-kicker">Entregas</p>
             <h2 id="calendar-events-title">{formatDate(selectedDate)}</h2>
-            {selectedEvents.length === 0 ? <p className="empty-state">No hay eventos para este día.</p> : (
+            {selectedEvents.length === 0 ? <p className="empty-state">No hay entregas para este día.</p> : (
               <ul className="project-calendar-events">
                 {selectedEvents.map((event) => (
                   <li key={event.id}>
@@ -103,20 +141,14 @@ export function ProjectCalendar({ projects, tasks, onOpenProject }: ProjectCalen
                       className="project-calendar-event"
                       onClick={() => {
                         setSelectedDate(null);
-                        if (event.kind === 'project') {
-                          onOpenProject(event.projectId);
-                          return;
-                        }
-                        if (!event.taskId) {
-                          return;
-                        }
-                        navigate(`/projects/${encodeURIComponent(event.projectId)}/tasks?taskId=${encodeURIComponent(event.taskId)}`);
+                        onOpenProject(event.projectId);
                       }}
                     >
-                      <span className={`project-calendar-event-mark project-calendar-event-mark-${event.kind}`} />
-                      <span>
+                      <span className="project-calendar-event-mark" />
+                      <span className="project-calendar-event-copy">
                         <strong>{event.label}</strong>
                         <small>{event.detail}</small>
+                        <em>{event.footer}</em>
                       </span>
                     </button>
                   </li>

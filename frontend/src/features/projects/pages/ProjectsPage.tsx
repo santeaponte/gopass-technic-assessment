@@ -2,13 +2,13 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 
 import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
+import { getTasks } from '../../tasks/api';
+import type { Task } from '../../tasks/types';
 import { createProject, deleteProject, getProjects, updateProject, updateProjectStatus } from '../api';
 import { ProjectDetailModal } from '../components/ProjectDetailModal';
 import { ProjectCalendar } from '../components/ProjectCalendar';
 import { ProjectForm } from '../components/ProjectForm';
 import { ProjectList } from '../components/ProjectList';
-import { getTasks } from '../../tasks/api';
-import type { Task } from '../../tasks/types';
 import type { Project, ProjectFormValues } from '../types';
 import { SortControl, type SortOption } from '../../../components/SortControl';
 
@@ -105,6 +105,7 @@ export function ProjectsPage() {
     if (sortOption !== 'calendar') {
       return;
     }
+
     getTasks().then(setCalendarTasks).catch((requestError: unknown) => {
       console.error(requestError);
       setError('No pudimos cargar las tareas del calendario.');
@@ -302,12 +303,16 @@ export function ProjectsPage() {
       )}
 
       {sortOption === 'calendar' ? (
-        <ProjectCalendar projects={projects} tasks={calendarTasks} onOpenProject={(projectId) => {
-          const project = projects.find((item) => item.id === projectId);
-          if (project) {
-            setSelectedProject(project);
-          }
-        }} />
+        <ProjectCalendar
+          projects={projects}
+          tasks={calendarTasks}
+          onOpenProject={(projectId) => {
+            const project = projects.find((item) => item.id === projectId);
+            if (project) {
+              setSelectedProject(project);
+            }
+          }}
+        />
       ) : loading ? (
         <p className="empty-state">Cargando proyectos...</p>
       ) : projects.length === 0 ? (
