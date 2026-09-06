@@ -13,7 +13,6 @@ import { TaskList } from '../components/TaskList';
 import type { Task, TaskFormValues, TaskStatus } from '../types';
 import type { Project } from '../../projects/types';
 import type { PublicUser } from '../../auth/types';
-import { SortControl, type SortOption } from '../../../components/SortControl';
 
 const emptyTaskValues: TaskFormValues = {
   title: '',
@@ -33,44 +32,17 @@ function toFormValues(task: Task): TaskFormValues {
   };
 }
 
-const priorityOrder: Record<Task['priority'], number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
-
-function sortTasks(tasks: Task[], sortOption: SortOption, selectedProjectId?: string): Task[] {
-  return [...tasks].sort((first, second) => {
-    if (sortOption === 'project' && selectedProjectId) {
-      const firstMatches = first.projectId === selectedProjectId;
-      const secondMatches = second.projectId === selectedProjectId;
-      if (firstMatches !== secondMatches) {
-        return firstMatches ? -1 : 1;
-      }
-    }
-
-    if (sortOption === 'priority') {
-      return priorityOrder[first.priority] - priorityOrder[second.priority];
-    }
-
-    if (sortOption === 'createdAt') {
-      return second.createdAt.localeCompare(first.createdAt);
-    }
-
-    if (!first.dueDate) return 1;
-    if (!second.dueDate) return -1;
-    return first.dueDate.localeCompare(second.dueDate);
-  });
-}
-
 export function TasksPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const [searchParams] = useSearchParams();
-  const projectSortId = searchParams.get('projectId') ?? undefined;
   const taskId = searchParams.get('taskId');
-  const initialSortOption = searchParams.get('sort') === 'project' && projectSortId ? 'project' : '';
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
   const [project, setProject] = useState<Project | null>(null);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [projectFilterId, setProjectFilterId] = useState('');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<PublicUser[]>([]);
   const [search, setSearch] = useState('');
@@ -82,12 +54,11 @@ export function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isStatusNoticeOpen, setIsStatusNoticeOpen] = useState(false);
-  const [sortOption, setSortOption] = useState<SortOption>(initialSortOption);
 
   const loadTasks = useCallback(async (term: string): Promise<void> => {
     try {
-      const nextTasks = await getTasks(term.trim(), projectId);
-      setTasks(sortTasks(nextTasks, sortOption, projectSortId));
+      const nextTasks = await getTasks(term.trim(), (projectId ?? projectFilterId) || undefined);
+      setTasks(nextTasks);
       setError('');
     } catch (requestError) {
       console.error(requestError);
@@ -96,7 +67,7 @@ export function TasksPage() {
     } finally {
       setLoading(false);
     }
-  }, [projectId, projectSortId, sortOption]);
+  }, [projectFilterId, projectId]);
 
   useEffect(() => {
     const loadProjectAndUsers = async (): Promise<void> => {
@@ -120,7 +91,7 @@ export function TasksPage() {
     if (projectId) {
       return;
     }
-    void getProjects().then((projects) => setAvailableProjects(projects.filter((availableProject) => availableProject.status === 'ACTIVE'))).catch((requestError: unknown) => {
+    void getProjects().then(setAvailableProjects).catch((requestError: unknown) => {
       console.error(requestError);
       setError('No pudimos cargar los proyectos para crear la tarea.');
     });
@@ -165,7 +136,7 @@ export function TasksPage() {
       if (!createdTask) {
         throw new Error('Task creation returned no task');
       }
-      setTasks((currentTasks) => sortTasks([createdTask, ...currentTasks], sortOption));
+      setTasks((currentTasks) => [createdTask, ...currentTasks]);
       setIsFormOpen(false);
       setEditingTask(null);
     } catch (requestError) {
@@ -193,10 +164,7 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
-      setTasks((currentTasks) => sortTasks(
-        currentTasks.map((task) => task.id === updatedTask.id ? updatedTask : task),
-        sortOption,
-      ));
+      setTasks((currentTasks) => currentTasks.map((task) => task.id === updatedTask.id ? updatedTask : task));
       setIsFormOpen(false);
       setEditingTask(null);
     } catch (requestError) {
@@ -242,10 +210,7 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task status update returned no task');
       }
-      setTasks((currentTasks) => sortTasks(
-        currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item),
-        sortOption,
-      ));
+      setTasks((currentTasks) => currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item));
       return true;
     } catch (requestError) {
       console.error(requestError);
@@ -267,10 +232,7 @@ export function TasksPage() {
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
-      setTasks((currentTasks) => sortTasks(
-        currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item),
-        sortOption,
-      ));
+      setTasks((currentTasks) => currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item));
       setSelectedTask(updatedTask);
     } catch (requestError) {
       console.error(requestError);
@@ -347,7 +309,22 @@ export function TasksPage() {
           </p>
         </div>
         <div className="page-header-actions">
-          <SortControl value={sortOption} onChange={setSortOption} />
+          {!projectId && (
+            <label className="sort-control">
+              <select
+                value={projectFilterId}
+                onChange={(event) => setProjectFilterId(event.target.value)}
+                aria-label="Filtrar por proyecto"
+              >
+                <option value="">General</option>
+                {availableProjects.map((availableProject) => (
+                  <option key={availableProject.id} value={availableProject.id}>
+                    {availableProject.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           {!projectId && (
             <button
               type="button"
