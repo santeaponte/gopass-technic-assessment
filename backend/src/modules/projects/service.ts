@@ -42,7 +42,13 @@ export class ProjectService {
 	}
 
 	public async update(id: string, input: UpdateProjectInput) {
-		await this.ensureExists(id);
+		const currentProject = await this.ensureExists(id);
+		const startDate = input.startDate ?? currentProject.startDate;
+		const dueDate = input.dueDate ?? currentProject.dueDate;
+
+		if (startDate && dueDate && startDate > dueDate) {
+			throw new AppError(422, 'La fecha de inicio debe ser anterior o igual a la fecha de entrega');
+		}
 
 		try {
 			return await this.projectRepository.update(id, input);
@@ -69,11 +75,13 @@ export class ProjectService {
 		}
 	}
 
-	private async ensureExists(id: string): Promise<void> {
+	private async ensureExists(id: string) {
 		const project = await this.projectRepository.findById(id);
 
 		if (!project) {
 			throw new AppError(404, 'Project not found');
 		}
+
+		return project;
 	}
 }

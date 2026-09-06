@@ -151,6 +151,7 @@ export function ProjectForm({
           name="project-due-date"
           type="date"
           value={values.dueDate}
+          min={values.startDate || undefined}
           onChange={(event) => handleChange('dueDate', event.target.value)}
           aria-invalid={fieldErrors.dueDate ? 'true' : undefined}
         />
