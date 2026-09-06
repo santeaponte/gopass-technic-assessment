@@ -1,4 +1,6 @@
 import type { Project } from '../types';
+import { DescriptionPreview } from '../../../components/DescriptionPreview';
+import { formatDate } from '../../../lib/date';
 
 type ProjectListProps = {
   projects: Project[];
@@ -19,11 +21,6 @@ const priorityLabels: Record<Project['priority'], string> = {
   HIGH: 'Alta',
 };
 
-function formatDate(date: string): string {
-  const [year, month, day] = date.slice(0, 10).split('-');
-  return `${day}/${month}/${year}`;
-}
-
 export function ProjectList({ projects, onOpen }: ProjectListProps) {
   if (projects.length === 0) {
     return <p className="empty-state">No hay proyectos para mostrar.</p>;
@@ -41,9 +38,7 @@ export function ProjectList({ projects, onOpen }: ProjectListProps) {
               </span>
             </span>
 
-            <span className="project-description">
-              {project.description || 'Sin descripción.'}
-            </span>
+            <DescriptionPreview description={project.description} title={project.name} className="project-description" />
 
             <span className="project-meta">
               <span>Propietario: {project.owner.name}</span>

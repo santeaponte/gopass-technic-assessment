@@ -1,5 +1,6 @@
 import type { DragEvent } from 'react';
 import type { Task, TaskStatus } from '../types';
+import { formatDate } from '../../../lib/date';
 
 const statusLabels: Record<TaskStatus, string> = {
   PENDING: 'Pendiente',
@@ -24,17 +25,6 @@ type TaskListProps = {
   onChangeStatus: (task: Task, status: TaskStatus) => void;
   onStatusDenied: () => void;
 };
-
-function formatDate(value: string | null): string | null {
-  if (!value) {
-    return null;
-  }
-
-  return new Intl.DateTimeFormat('es', {
-    day: 'numeric',
-    month: 'short',
-  }).format(new Date(value));
-}
 
 export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, onOpen, onChangeStatus, onStatusDenied }: TaskListProps) {
   const statuses: TaskStatus[] = ['PENDING', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
@@ -75,7 +65,7 @@ export function TaskList({ tasks, currentUserId, isAdmin, canCreate, onCreate, o
 
             <div className="task-column-body">
               {columnTasks.map((task) => {
-                const dueDate = formatDate(task.dueDate);
+                const dueDate = task.dueDate ? formatDate(task.dueDate, true) : null;
 
                 return (
                   <button

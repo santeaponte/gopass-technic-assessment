@@ -277,6 +277,21 @@
   line-height: 1.6;
 }
 
+.description-preview {
+  display: block;
+}
+
+.description-preview-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.description-preview .description-read-more {
+  display: inline-block;
+}
+
 .project-meta {
   display: flex;
   flex-wrap: wrap;
@@ -327,6 +342,7 @@
 }
 
 .project-modal-tasks {
+  min-width: 0;
   border-right: 1px solid #d9e1e5;
 }
 
@@ -373,6 +389,7 @@
 }
 
 .project-task-list {
+  min-width: 0;
   display: grid;
   gap: 0.75rem;
   padding: 0;
@@ -407,6 +424,16 @@
   place-items: center;
   padding: 1.5rem;
   background: rgb(25 52 58 / 42%);
+}
+
+.task-edit-modal-backdrop {
+  position: fixed;
+  z-index: 16;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 48%);
 }
 
 .task-create-modal {
@@ -466,7 +493,11 @@
 }
 
 .project-task-item {
+  position: relative;
   display: flex;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   align-items: start;
   justify-content: space-between;
   gap: 1rem;
@@ -474,6 +505,114 @@
   border-radius: 8px;
   padding: 0.9rem;
   background: #fff;
+  cursor: pointer;
+}
+
+.project-task-item > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.project-task-list-description .description-preview-text {
+  min-width: 0;
+  max-width: 100%;
+  max-height: 3em;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+
+.project-task-item:focus-visible {
+  outline: 2px solid #df6b3f;
+  outline-offset: 2px;
+}
+
+.project-task-detail-backdrop {
+  position: fixed;
+  z-index: 14;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 48%);
+}
+
+.project-task-detail-modal {
+  position: relative;
+  width: min(38rem, 100%);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 2rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 24%);
+}
+
+.project-task-detail-modal h2 {
+  margin: 0;
+  color: #19343a;
+  font-size: 1.5rem;
+}
+
+.project-task-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+}
+
+.project-task-detail-meta div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.project-task-detail-meta dt,
+.project-task-detail-label {
+  color: #607178;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.project-task-detail-meta dd {
+  margin: 0;
+  color: #19343a;
+  font-weight: 700;
+}
+
+.project-task-detail-label {
+  margin: 1.5rem 0 0.35rem;
+}
+
+.project-task-detail-text {
+  margin: 0;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  color: #607178;
+  background: #f8fafb;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.project-task-description-preview {
+  max-height: 7.5em;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.project-task-detail-actions {
+  margin-top: 1.5rem;
+  border-top: 1px solid #d9e1e5;
+  padding-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .project-task-item strong {
@@ -511,15 +650,82 @@
 }
 
 .project-modal-description {
-  margin: 1.5rem 0 0;
+  margin: 0.35rem 0 0;
+  border: 1px solid #d9e1e5;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #607178;
+  background: #fff;
+  line-height: 1.6;
+}
+
+.project-modal-description-preview,
+.task-detail-description-preview {
+  max-height: 7.5em;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.description-read-more {
+  margin-top: 0.5rem;
+  border: 0;
+  padding: 0;
+  color: #df6b3f;
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.description-modal-backdrop {
+  position: fixed;
+  z-index: 18;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(25 52 58 / 48%);
+}
+
+.description-modal {
+  position: relative;
+  width: min(42rem, 100%);
+  max-height: calc(100vh - 3rem);
+  overflow-y: auto;
+  border: 1px solid #d9e1e5;
+  border-radius: 10px;
+  padding: 2rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3rem rgb(25 52 58 / 24%);
+}
+
+.description-modal h2 {
+  margin: 0;
+  color: #19343a;
+}
+
+.description-modal-text {
+  margin: 1.25rem 0 0;
   color: #607178;
   line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.project-modal-description-label {
+  margin: 1.75rem 0 0;
+  color: #607178;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .project-modal-meta {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  margin: 2rem 0;
+  margin: 1.5rem 0 0;
 }
 
 .project-modal-meta div {
@@ -535,12 +741,26 @@
 }
 
 .project-modal-meta dd {
+  justify-self: start;
   margin: 0;
   color: #19343a;
   font-weight: 700;
 }
 
+@media (max-width: 720px) {
+  .project-task-detail-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .project-modal-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
 .project-modal-actions {
+  margin-top: 1.5rem;
+  border-top: 1px solid #d9e1e5;
+  padding-top: 1rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;

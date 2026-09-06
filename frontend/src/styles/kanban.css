@@ -309,6 +309,9 @@
 }
 
 .task-detail-actions {
+  margin-top: 1.5rem;
+  border-top: 1px solid #d9e1e5;
+  padding-top: 1rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;

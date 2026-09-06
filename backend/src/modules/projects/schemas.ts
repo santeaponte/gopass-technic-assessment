@@ -17,7 +17,7 @@ export const projectSearchSchema = z.object({
 
 export const createProjectSchema = z.object({
 	name: z.string().trim().min(1).max(200),
-	description: z.string().trim().max(5000).optional(),
+	description: z.string().trim().optional(),
 	status: projectStatusSchema.optional(),
 	priority: projectPrioritySchema.optional(),
 	startDate: dateSchema.optional(),
@@ -30,7 +30,7 @@ export const createProjectSchema = z.object({
 export const updateProjectSchema = z
 	.object({
 		name: z.string().trim().min(1).max(200).optional(),
-		description: z.string().trim().max(5000).optional(),
+		description: z.string().trim().optional(),
 		status: projectStatusSchema.optional(),
 		priority: projectPrioritySchema.optional(),
 		startDate: dateSchema.optional(),

@@ -170,10 +170,10 @@ export function ProjectsPage() {
   };
 
   const openEditForm = (project: Project) => {
-    setSelectedProject(null);
     setEditingProject(project);
     setFormError('');
     setIsFormOpen(true);
+    setSelectedProject(null);
   };
 
   const handleModalStatusChange = async (project: Project): Promise<void> => {
@@ -215,7 +215,15 @@ export function ProjectsPage() {
       {error && <p className="form-error" role="alert">{error}</p>}
 
       {isFormOpen && (
-        <div className="project-form-modal-backdrop" role="presentation" onMouseDown={closeForm}>
+        <div
+          className="project-form-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeForm();
+            }
+          }}
+        >
           <div
             ref={projectFormModalRef}
             className="project-form-modal"
@@ -268,6 +276,7 @@ export function ProjectsPage() {
           project={selectedProject}
           canManage={isAdmin}
           canCreateTask={Boolean(user)}
+          currentUserId={user?.id ?? ''}
           onClose={() => setSelectedProject(null)}
           onEdit={openEditForm}
           onStatusChange={handleModalStatusChange}

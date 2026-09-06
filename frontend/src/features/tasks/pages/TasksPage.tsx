@@ -4,11 +4,12 @@ import { Link, useParams } from 'react-router-dom';
 import { ApiError } from '../../../lib/api/client';
 import { useAuth } from '../../auth/context/useAuth';
 import { getUsers } from '../../users/api';
-import { getProject } from '../../projects/api';
+import { getProject, getProjects } from '../../projects/api';
 import { archiveTask, changeTaskStatus, createTask, getTasks, updateTask } from '../api';
 import { TaskForm } from '../components/TaskForm';
 import { TaskDetailModal } from '../components/TaskDetailModal';
 import { TaskList } from '../components/TaskList';
+import { DescriptionPreview } from '../../../components/DescriptionPreview';
 import type { Task, TaskFormValues, TaskStatus } from '../types';
 import type { Project } from '../../projects/types';
 import type { PublicUser } from '../../auth/types';
@@ -16,6 +17,7 @@ import type { PublicUser } from '../../auth/types';
 const emptyTaskValues: TaskFormValues = {
   title: '',
   description: '',
+  notes: '',
   priority: 'MEDIUM',
   dueDate: '',
   assigneeId: '',
@@ -25,6 +27,7 @@ function toFormValues(task: Task): TaskFormValues {
   return {
     title: task.title,
     description: task.description ?? '',
+    notes: task.notes ?? '',
     priority: task.priority,
     dueDate: task.dueDate ? task.dueDate.slice(0, 10) : '',
     assigneeId: task.assignee?.id ?? '',
@@ -45,11 +48,14 @@ export function TasksPage() {
   const isAdmin = user?.role === 'ADMIN';
 
   const [project, setProject] = useState<Project | null>(null);
+  const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<PublicUser[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [taskFormError, setTaskFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -89,6 +95,17 @@ export function TasksPage() {
   }, [isAdmin, projectId]);
 
   useEffect(() => {
+    if (projectId) {
+      return;
+    }
+
+    void getProjects().then(setAvailableProjects).catch((requestError: unknown) => {
+      console.error(requestError);
+      setError('No pudimos cargar los proyectos para crear la tarea.');
+    });
+  }, [projectId]);
+
+  useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       setLoading(true);
       void loadTasks(search);
@@ -98,15 +115,18 @@ export function TasksPage() {
   }, [loadTasks, search]);
 
   const handleCreate = async (values: TaskFormValues): Promise<void> => {
-    if (!projectId) {
+    const targetProjectId = projectId ?? selectedProjectId;
+    if (!targetProjectId) {
+      setTaskFormError('Selecciona un proyecto para crear la tarea.');
       return;
     }
 
     setIsSubmitting(true);
     setError('');
+    setTaskFormError('');
 
     try {
-      const createdTask = await createTask(projectId, values);
+      const createdTask = await createTask(targetProjectId, values);
       if (!createdTask) {
         throw new Error('Task creation returned no task');
       }
@@ -115,22 +135,23 @@ export function TasksPage() {
       setEditingTask(null);
     } catch (requestError) {
       console.error(requestError);
-      setError(requestError instanceof ApiError ? requestError.message : 'No pudimos crear la tarea.');
+      setTaskFormError(requestError instanceof ApiError ? requestError.message : 'No pudimos crear la tarea.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleEdit = async (values: TaskFormValues): Promise<void> => {
-    if (!editingTask || !isAdmin) {
+    if (!editingTask) {
       return;
     }
 
+    const notesOnly = !isAdmin;
     setIsSubmitting(true);
     setError('');
 
     try {
-      const updatedTask = await updateTask(editingTask.id, editingTask.projectId, values);
+      const updatedTask = await updateTask(editingTask.id, editingTask.projectId, values, notesOnly);
       if (!updatedTask) {
         throw new Error('Task update returned no task');
       }
@@ -189,10 +210,26 @@ export function TasksPage() {
     }
   };
 
-  const handleModalEdit = (task: Task): void => {
-    setSelectedTask(null);
-    setEditingTask(task);
-    setIsFormOpen(true);
+  const handleModalEdit = async (task: Task, values: TaskFormValues): Promise<void> => {
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const updatedTask = await updateTask(task.id, task.projectId, values, !isAdmin);
+      if (!updatedTask) {
+        throw new Error('Task update returned no task');
+      }
+      setTasks((currentTasks) => sortTasksByDueDate(
+        currentTasks.map((item) => item.id === updatedTask.id ? updatedTask : item),
+      ));
+      setSelectedTask(updatedTask);
+    } catch (requestError) {
+      console.error(requestError);
+      setError(requestError instanceof ApiError ? requestError.message : 'No pudimos editar la tarea.');
+      throw requestError;
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleModalArchive = async (task: Task): Promise<void> => {
@@ -211,7 +248,27 @@ export function TasksPage() {
     setIsFormOpen(false);
     setEditingTask(null);
     setError('');
+    setTaskFormError('');
   };
+
+  useEffect(() => {
+    if (!selectedTask && !isFormOpen) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (isFormOpen) {
+          closeForm();
+        } else {
+          setSelectedTask(null);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isFormOpen, selectedTask]);
 
   return (
     <main className="app-page tasks-page">
@@ -225,9 +282,24 @@ export function TasksPage() {
             Organiza el trabajo, sigue el progreso y mantén todo en marcha.
           </p>
           {project?.description && (
-            <p className="tasks-project-description">{project.description}</p>
+            <DescriptionPreview description={project.description} title={project.name} className="tasks-project-description" />
           )}
         </div>
+        {!projectId && (
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => {
+              setSelectedProjectId('');
+              setEditingTask(null);
+              setError('');
+              setTaskFormError('');
+              setIsFormOpen(true);
+            }}
+          >
+            Nueva tarea
+          </button>
+        )}
       </section>
 
       <form className="tasks-search" onSubmit={(event) => event.preventDefault()} noValidate>
@@ -256,8 +328,49 @@ export function TasksPage() {
             onSubmit={editingTask ? handleEdit : handleCreate}
             onCancel={closeForm}
             isSubmitting={isSubmitting}
+            projects={!editingTask && !projectId ? availableProjects : undefined}
+            selectedProjectId={!editingTask && !projectId ? selectedProjectId : undefined}
+            onProjectChange={!editingTask && !projectId ? setSelectedProjectId : undefined}
+             notesOnly={Boolean(editingTask) && !isAdmin}
           />
         </section>
+      )}
+      {isFormOpen && !projectId && (
+        <div
+          className="task-create-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeForm();
+            }
+          }}
+        >
+          <div
+            className="task-create-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="task-create-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button type="button" className="project-modal-close" onClick={closeForm} aria-label="Cerrar formulario de tarea">
+              ×
+            </button>
+            <h2 id="task-create-title">Nueva tarea</h2>
+            {taskFormError && <p className="form-error" role="alert">{taskFormError}</p>}
+            <TaskForm
+              key="new-task"
+              initialValues={emptyTaskValues}
+              users={users}
+              projects={availableProjects}
+              selectedProjectId={selectedProjectId}
+              onProjectChange={setSelectedProjectId}
+              submitLabel="Crear tarea"
+              onSubmit={handleCreate}
+              onCancel={closeForm}
+              isSubmitting={isSubmitting}
+            />
+          </div>
+        </div>
       )}
 
       {loading ? (
@@ -284,6 +397,9 @@ export function TasksPage() {
           isAdmin={isAdmin}
           onClose={() => setSelectedTask(null)}
           onEdit={handleModalEdit}
+          users={users}
+          isSubmitting={isSubmitting}
+          error={error}
           onArchive={handleModalArchive}
           onChangeStatus={handleModalStatus}
           onStatusDenied={() => setIsStatusNoticeOpen(true)}

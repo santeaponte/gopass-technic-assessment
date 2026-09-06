@@ -6,7 +6,6 @@ export const projectFormSchema = z.object({
   description: z
     .string()
     .trim()
-    .max(5000, 'La descripción es demasiado larga.')
     .optional()
     .transform((value) => value ?? ''),
   startDate: z.string(),
