@@ -63,6 +63,7 @@ export function TasksPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const [searchParams] = useSearchParams();
   const projectSortId = searchParams.get('projectId') ?? undefined;
+  const taskId = searchParams.get('taskId');
   const initialSortOption = searchParams.get('sort') === 'project' && projectSortId ? 'project' : '';
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
@@ -133,6 +134,16 @@ export function TasksPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [loadTasks, search]);
+
+  useEffect(() => {
+    if (!taskId) {
+      return;
+    }
+    const task = tasks.find((item) => item.id === taskId);
+    if (task) {
+      setSelectedTask(task);
+    }
+  }, [taskId, tasks]);
 
   const handleCreate = async (values: TaskFormValues): Promise<void> => {
     const targetProjectId = projectId ?? selectedProjectId;

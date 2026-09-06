@@ -4,8 +4,11 @@ import { useAuth } from '../../auth/context/useAuth';
 import { ApiError } from '../../../lib/api/client';
 import { createProject, deleteProject, getProjects, updateProject, updateProjectStatus } from '../api';
 import { ProjectDetailModal } from '../components/ProjectDetailModal';
+import { ProjectCalendar } from '../components/ProjectCalendar';
 import { ProjectForm } from '../components/ProjectForm';
 import { ProjectList } from '../components/ProjectList';
+import { getTasks } from '../../tasks/api';
+import type { Task } from '../../tasks/types';
 import type { Project, ProjectFormValues } from '../types';
 import { SortControl, type SortOption } from '../../../components/SortControl';
 
@@ -49,6 +52,7 @@ export function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('');
+  const [calendarTasks, setCalendarTasks] = useState<Task[]>([]);
   const projectFormModalRef = useRef<HTMLDivElement>(null);
 
   const closeForm = () => {
@@ -96,6 +100,16 @@ export function ProjectsPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [loadProjects, search]);
+
+  useEffect(() => {
+    if (sortOption !== 'calendar') {
+      return;
+    }
+    getTasks().then(setCalendarTasks).catch((requestError: unknown) => {
+      console.error(requestError);
+      setError('No pudimos cargar las tareas del calendario.');
+    });
+  }, [sortOption]);
 
   const handleCreate = async (values: ProjectFormValues): Promise<void> => {
     if (!isAdmin) {
@@ -217,7 +231,7 @@ export function ProjectsPage() {
         </div>
 
         <div className="page-header-actions">
-          <SortControl value={sortOption} onChange={setSortOption} />
+          <SortControl value={sortOption} onChange={setSortOption} showCalendar />
           {isAdmin && (
             <button type="button" className="primary-button" onClick={openCreateForm}>
               Nuevo proyecto
@@ -287,7 +301,14 @@ export function ProjectsPage() {
         </div>
       )}
 
-      {loading ? (
+      {sortOption === 'calendar' ? (
+        <ProjectCalendar projects={projects} tasks={calendarTasks} onOpenProject={(projectId) => {
+          const project = projects.find((item) => item.id === projectId);
+          if (project) {
+            setSelectedProject(project);
+          }
+        }} />
+      ) : loading ? (
         <p className="empty-state">Cargando proyectos...</p>
       ) : projects.length === 0 ? (
         <p className="empty-state">No hay proyectos para mostrar.</p>

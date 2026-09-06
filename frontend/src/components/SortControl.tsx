@@ -1,6 +1,6 @@
-export type SortOption = '' | 'dueDate' | 'priority' | 'createdAt' | 'project';
+export type SortOption = '' | 'dueDate' | 'priority' | 'createdAt' | 'project' | 'calendar';
 
-const sortOptions: SortOption[] = ['', 'dueDate', 'priority', 'createdAt', 'project'];
+const sortOptions: SortOption[] = ['', 'dueDate', 'priority', 'createdAt', 'project', 'calendar'];
 
 function isSortOption(value: string): value is SortOption {
   return sortOptions.includes(value as SortOption);
@@ -10,9 +10,10 @@ type SortControlProps = {
   value: SortOption;
   onChange: (value: SortOption) => void;
   label?: string;
+  showCalendar?: boolean;
 };
 
-export function SortControl({ value, onChange, label = 'Ordenar por' }: SortControlProps) {
+export function SortControl({ value, onChange, label = 'Ordenar por', showCalendar = false }: SortControlProps) {
   return (
     <label className="sort-control">
       <span className="sort-control-icon" aria-hidden="true">↕</span>
@@ -31,6 +32,7 @@ export function SortControl({ value, onChange, label = 'Ordenar por' }: SortCont
         <option value="priority">Prioridad más alta</option>
         <option value="createdAt">Más recientes</option>
         <option value="project">Proyecto</option>
+        {showCalendar && <option value="calendar">Calendario</option>}
       </select>
     </label>
   );
