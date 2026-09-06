@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  backend:
+    name: Backend tests and build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: gopass
+          POSTGRES_PASSWORD: gopass
+          POSTGRES_DB: postgres
+        ports:
+          - 5435:5432
+        options: >-
+          --health-cmd "pg_isready -U gopass -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgresql://gopass:gopass@localhost:5435/gopass_test
+      DATABASE_URL: postgresql://gopass:gopass@localhost:5435/gopass_test
+      JWT_SECRET: ci-test-secret
+      JWT_EXPIRES_IN: 1h
+      CORS_ORIGIN: http://localhost:5173
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create and migrate test database
+        working-directory: backend
+        run: npm run test:db:setup
+
+      - name: Run unit tests
+        working-directory: backend
+        run: npm run test:unit
+
+      - name: Run integration tests
+        working-directory: backend
+        run: npm run test:integration
+
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Lint backend
+        working-directory: backend
+        run: npm run lint
+
+  frontend:
+    name: Frontend build and lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
