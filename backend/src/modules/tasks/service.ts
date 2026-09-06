@@ -50,45 +50,53 @@ export class TaskService {
 	}
 
 	public async create(input: CreateTaskInput, creatorId: string, role: UserRole) {
-		return this.taskRepository.transaction(async (repository) => {
-			await this.ensureProjectExists(repository, input.projectId, creatorId, role);
-			await this.ensureUserExists(repository, input.assigneeId);
-			const task = await repository.create({ ...input, creatorId });
-			await repository.createStatusChange({
-				taskId: task.id,
-				fromStatus: null,
-				toStatus: 'PENDING',
-				changedBy: creatorId,
-			});
+		try {
+			return await this.taskRepository.transaction(async (repository) => {
+				await this.ensureProjectExists(repository, input.projectId, creatorId, role);
+				await this.ensureUserExists(repository, input.assigneeId);
+				const task = await repository.create({ ...input, creatorId });
+				await repository.createStatusChange({
+					taskId: task.id,
+					fromStatus: null,
+					toStatus: 'PENDING',
+					changedBy: creatorId,
+				});
 
-			return repository.findById(task.id);
-		});
+				return repository.findById(task.id);
+			});
+		} catch (error: unknown) {
+			this.rethrowTaskTitleConflict(error);
+		}
 	}
 
 	public async update(id: string, input: UpdateTaskInput, userId: string, role: UserRole) {
-		return this.taskRepository.transaction(async (repository) => {
-			const task = await repository.findById(id, userId, role);
-			if (!task) {
-				throw new AppError(404, 'Task not found');
-			}
+		try {
+			return await this.taskRepository.transaction(async (repository) => {
+				const task = await repository.findById(id, userId, role);
+				if (!task) {
+					throw new AppError(404, 'Task not found');
+				}
 
-			if (role === 'VIEWER' && Object.keys(input).some((field) => field !== 'assigneeId')) {
-				throw new AppError(403, 'Viewers can only update the task assignee');
-			}
+				if (role === 'VIEWER' && Object.keys(input).some((field) => field !== 'assigneeId')) {
+					throw new AppError(403, 'Viewers can only update the task assignee');
+				}
 
-			if (input.projectId) {
-				await this.ensureProjectExists(repository, input.projectId);
-			}
-			if (input.assigneeId) {
-				await this.ensureUserExists(repository, input.assigneeId);
-			}
-			if (input.creatorId) {
-				await this.ensureUserExists(repository, input.creatorId);
-			}
+				if (input.projectId) {
+					await this.ensureProjectExists(repository, input.projectId);
+				}
+				if (input.assigneeId) {
+					await this.ensureUserExists(repository, input.assigneeId);
+				}
+				if (input.creatorId) {
+					await this.ensureUserExists(repository, input.creatorId);
+				}
 
-			await repository.update(id, input);
-			return repository.findById(id, userId, role);
-		});
+				await repository.update(id, input);
+				return repository.findById(id, userId, role);
+			});
+		} catch (error: unknown) {
+			this.rethrowTaskTitleConflict(error);
+		}
 	}
 
 	public async changeStatus(id: string, input: ChangeTaskStatusInput, role: UserRole, changedBy: string) {
@@ -167,5 +175,13 @@ export class TaskService {
 		if (!user) {
 			throw new AppError(404, 'Assignee was not found');
 		}
+	}
+
+	private rethrowTaskTitleConflict(error: unknown): never {
+		if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+			throw new AppError(409, 'Ya existe una tarea con ese nombre en este proyecto');
+		}
+
+		throw error;
 	}
 }

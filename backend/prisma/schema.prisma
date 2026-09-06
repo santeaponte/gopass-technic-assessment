@@ -93,6 +93,7 @@ model Task {
 
   @@index([projectId])
   @@index([assigneeId])
+  @@unique([projectId, title])
   @@map("tasks")
 }
 

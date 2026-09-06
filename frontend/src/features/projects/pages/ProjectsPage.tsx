@@ -188,8 +188,8 @@ export function ProjectsPage() {
       <section className="projects-header">
         <div>
           <p className="projects-kicker">Proyectos</p>
-          <h1>Tu espacio de trabajo</h1>
-          <p className="projects-intro">Entra en un proyecto para continuar con sus tareas.</p>
+          <h1>Tu espacio</h1>
+          <p className="projects-intro">Elige un proyecto y continúa con lo que sigue.</p>
         </div>
 
         {isAdmin && (

@@ -215,9 +215,14 @@ export function TasksPage() {
 
       <section className="tasks-header">
         <div>
-          <p className="tasks-kicker">Proyecto</p>
-          <h1>{project?.name ?? 'Tareas'}</h1>
-          {project?.description && <p className="tasks-intro">{project.description}</p>}
+          <p className="tasks-kicker">Tareas</p>
+          <h1>{project?.name ?? 'Tus pendientes'}</h1>
+          <p className="tasks-intro">
+            Organiza el trabajo, sigue el progreso y mantén todo en marcha.
+          </p>
+          {project?.description && (
+            <p className="tasks-project-description">{project.description}</p>
+          )}
         </div>
       </section>
 
