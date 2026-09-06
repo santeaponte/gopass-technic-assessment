@@ -75,8 +75,10 @@ export function ProjectDetailModal({
       }
     };
 
-    void loadTasks();
-  }, [project.id]);
+    if (canManage || project.status === 'ACTIVE') {
+      void loadTasks();
+    }
+  }, [canManage, project.id, project.status]);
 
   useEffect(() => {
     if (!canManage) {
@@ -186,6 +188,12 @@ export function ProjectDetailModal({
           ×
         </button>
 
+        {project.status !== 'ACTIVE' && !canManage ? (
+          <section className="project-modal-tasks project-modal-inactive" aria-labelledby="project-inactive-title">
+            <p className="projects-kicker">Proyecto</p>
+            <h2 id="project-inactive-title">El proyecto está inactivo.</h2>
+          </section>
+        ) : (
         <section className="project-modal-tasks" aria-labelledby="project-tasks-title">
           <div className="project-modal-section-heading">
             <p className="projects-kicker">Actividad</p>
@@ -228,15 +236,16 @@ export function ProjectDetailModal({
               ))}
             </ul>
           )}
-          {canCreateTask && (
+          {canCreateTask && project.status === 'ACTIVE' && (
             <button type="button" className="project-create-task-button" onClick={() => { setTaskError(''); setIsTaskFormOpen(true); }}>
               + Agregar tarea
             </button>
           )}
-          {!canCreateTask && project.status !== 'ACTIVE' && (
+          {project.status !== 'ACTIVE' && (
             <p className="form-error">El proyecto está inactivo. Actívalo para modificar sus tareas.</p>
           )}
         </section>
+        )}
 
         <aside className="project-modal-info">
           <div className="project-modal-section-heading">
@@ -348,7 +357,7 @@ export function ProjectDetailModal({
           </section>
         </div>
       )}
-      {isTaskEditFormOpen && selectedTask && (
+      {isTaskEditFormOpen && selectedTask && project.status === 'ACTIVE' && (
         <div
           className="task-edit-modal-backdrop"
           role="presentation"
@@ -383,7 +392,7 @@ export function ProjectDetailModal({
           </div>
         </div>
       )}
-      {isTaskFormOpen && (
+      {isTaskFormOpen && project.status === 'ACTIVE' && (
         <div className="task-create-modal-backdrop" role="presentation" onMouseDown={() => setIsTaskFormOpen(false)}>
           <div
             className="task-create-modal"

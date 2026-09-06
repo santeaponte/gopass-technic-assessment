@@ -827,6 +827,19 @@
   gap: 0.6rem;
 }
 
+.project-modal-inactive {
+  display: grid;
+  align-content: center;
+  min-height: 18rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.project-modal-inactive h2 {
+  margin: 0;
+  color: #19343a;
+}
+
 .project-status-action {
   border: 0;
   border-radius: 7px;

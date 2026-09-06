@@ -146,6 +146,7 @@ export class TaskService {
 		}
 
 		const task = await this.findById(id, userId, role);
+		await this.ensureProjectIsActive(this.taskRepository, task.projectId);
 		try {
 			await this.taskRepository.delete(task.id);
 		} catch (error: unknown) {

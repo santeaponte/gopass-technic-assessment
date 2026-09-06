@@ -311,6 +311,21 @@ export function TasksPage() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isFormOpen, selectedTask]);
 
+  if (projectId && project && !isAdmin && project.status !== 'ACTIVE') {
+    return (
+      <main className="app-page tasks-page">
+        <Link className="back-link" to="/projects">← Volver a proyectos</Link>
+        <section className="tasks-header">
+          <div>
+            <p className="tasks-kicker">Tareas</p>
+            <h1>Proyecto: {project.name}</h1>
+          </div>
+        </section>
+        <p className="inactive-project-message" role="status">El proyecto está inactivo.</p>
+      </main>
+    );
+  }
+
   return (
     <main className="app-page tasks-page">
       {projectId && <Link className="back-link" to="/projects">← Volver a proyectos</Link>}

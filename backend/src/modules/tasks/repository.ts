@@ -93,6 +93,7 @@ export class TaskRepository {
 			filters.push({
 				OR: [{ creatorId: userId }, { assigneeId: userId }],
 			});
+			filters.push({ project: { status: 'ACTIVE' } });
 		}
 
 		if (filters.length > 0) {
@@ -111,6 +112,7 @@ export class TaskRepository {
 
 		if (role === 'VIEWER' && userId) {
 			where.OR = [{ creatorId: userId }, { assigneeId: userId }];
+			where.project = { status: 'ACTIVE' };
 		}
 
 		return this.database.task.findFirst({
@@ -129,6 +131,7 @@ export class TaskRepository {
 					archivedAt: null,
 				},
 			};
+			where.status = 'ACTIVE';
 		}
 
 		return this.database.project.findFirst({ where, select: { id: true, status: true } });

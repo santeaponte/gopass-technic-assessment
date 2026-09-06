@@ -52,8 +52,9 @@ export function TaskDetailModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteWarningOpen, setIsDeleteWarningOpen] = useState(false);
-  const canChangeStatus = isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId;
-  const canEditNotes = isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId;
+  const isProjectActive = task.project.status === 'ACTIVE';
+  const canChangeStatus = isProjectActive && (isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId);
+  const canEditNotes = isProjectActive && (isAdmin || task.creator.id === currentUserId || task.assignee?.id === currentUserId);
   const availableStatuses = editableStatuses;
 
   useEffect(() => {
@@ -164,7 +165,7 @@ export function TaskDetailModal({
               {isAdmin ? 'Editar' : 'Editar notas'}
             </button>
           )}
-          {isAdmin && (
+          {isAdmin && isProjectActive && (
             <button type="button" className="danger-button" onClick={() => setIsDeleteWarningOpen(true)}>
               Eliminar
             </button>
@@ -184,7 +185,7 @@ export function TaskDetailModal({
         )}
       </div>
     </div>
-    {isEditOpen && (
+    {isEditOpen && isProjectActive && (
       <div className="task-edit-modal-backdrop" role="presentation" onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           setIsEditOpen(false);

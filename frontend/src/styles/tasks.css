@@ -86,6 +86,13 @@
   background: #fff;
 }
 
+.inactive-project-message {
+  margin: 2rem 0;
+  color: #607178;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
 .search-field:focus-within {
   outline: 2px solid #df6b3f;
   outline-offset: 2px;
