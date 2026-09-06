@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { ApiError } from '../../../lib/api/client';
 import { createTask, getTasks, updateTask } from '../../tasks/api';
 import { TaskForm } from '../../tasks/components/TaskForm';
+import { TaskNotes } from '../../tasks/components/TaskNotes';
 import type { Task, TaskFormValues, TaskStatus } from '../../tasks/types';
 import { getUsers } from '../../users/api';
 import type { PublicUser } from '../../auth/types';
@@ -44,7 +44,6 @@ export function ProjectDetailModal({
   onStatusChange,
   onDelete,
 }: ProjectDetailModalProps) {
-  const navigate = useNavigate();
   const modalRef = useRef<HTMLDivElement>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -210,11 +209,11 @@ export function ProjectDetailModal({
                   className="project-task-item"
                   tabIndex={0}
                   role="button"
-                  onClick={() => navigate(`/projects/${encodeURIComponent(project.id)}/tasks`)}
+                  onClick={() => setSelectedTask(task)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      navigate(`/projects/${encodeURIComponent(project.id)}/tasks`);
+                      setSelectedTask(task);
                     }
                   }}
                 >
@@ -336,6 +335,10 @@ export function ProjectDetailModal({
               description={selectedTask.description}
               title={selectedTask.title}
               className="project-task-detail-text"
+            />
+            <TaskNotes
+             taskId={selectedTask.id}
+             canAdd={canCreateTask && project.status === 'ACTIVE'}
             />
             {project.status === 'ACTIVE' && canManage && (
               <div className="project-task-detail-actions">
